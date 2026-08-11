@@ -226,6 +226,7 @@
       <a class="navlink" href="#ch13"><span class="check">&#10003;</span>13 &middot; Glossary</a>
       <a class="navlink" href="#appA"><span class="check">&#10003;</span>A &middot; Command Cheat-Sheet</a>
       <a class="navlink" href="#appB"><span class="check">&#10003;</span>B &middot; Which Tool Should I Use?</a>
+      <a class="navlink" href="#sources"><span class="check">&#10003;</span>&#128218; Sources &amp; Further Reading</a>
     </div>
   </div>
 </nav>
@@ -271,7 +272,7 @@
 
   <div class="box warn">
     <span class="h">The one rule, stated up front</span>
-    <strong>Never install project packages into your system Python.</strong> Not with <code>sudo pip install</code>, not with a bare <code>pip install</code> that happens to hit the system interpreter. Your operating system uses its Python for its own tools; packages you shove in there can break them, and you will eventually hit a version conflict you cannot untangle. Make a virtual environment per project. It takes eight seconds and it is the entire difference between Python being pleasant and Python being a source of dread. Modern Python (3.11+) actually blocks this by default with an <code>externally-managed-environment</code> error &mdash; that error is your friend, not an obstacle to work around.
+    <strong>Never install project packages into your system Python.</strong> Not with <code>sudo pip install</code>, not with a bare <code>pip install</code> that happens to hit the system interpreter. Your operating system uses its Python for its own tools; packages you shove in there can break them, and you will eventually hit a version conflict you cannot untangle. Make a virtual environment per project. It takes eight seconds and it is the entire difference between Python being pleasant and Python being a source of dread. Ubuntu, Debian and most other distributions now mark their system Python as <em>externally managed</em> (<strong>PEP&nbsp;668</strong>), so pip refuses outright with an <code>externally-managed-environment</code> error &mdash; that error is your friend, not an obstacle to work around. PEP&nbsp;668 explicitly directs installers to point you at <code>python3 -m venv</code> instead, which is exactly what the rest of this book does.
   </div>
 
   <h2 class="part-divider" id="partI">Part I — The Interpreter</h2>
@@ -315,7 +316,7 @@
     <tr><td><code>pip install</code> says "already satisfied" but the import still fails</td><td>Same thing, seen from the other side: <code>pip</code> and <code>python</code> are pointing at different environments.</td></tr>
     <tr><td>Code works in the terminal but not in your editor</td><td>Your editor selected a different interpreter than your shell. See <a class="xref" href="VS_Code_Field_Guide.html#ch5">the VS Code guide</a>.</td></tr>
     <tr><td>Two projects need incompatible versions of the same library</td><td>They're sharing one site-packages. They need one each.</td></tr>
-    <tr><td><code>error: externally-managed-environment</code></td><td>You tried to install into the OS's own Python. Make a venv instead.</td></tr>
+    <tr><td><code>error: externally-managed-environment</code></td><td>You tried to install into a distro-managed Python. PEP&nbsp;668 blocking you on purpose &mdash; make a venv.</td></tr>
   </table>
   <p>Notice that four of those five are the <em>same bug</em> wearing different hats. That's the payoff of the model: instead of five memorized fixes, you have one question &mdash; <em>which environment is this command using?</em> &mdash; and <a class="xref" href="#ch3">Chapter 3</a> teaches you to answer it in two commands.</p>
 
@@ -354,7 +355,7 @@ py -m venv .venv     # create a venv with the default Python</code></pre>
   <p>Windows also has "App Execution Aliases" &mdash; stub <code>python.exe</code> files that open the Microsoft Store instead of running anything. If typing <code>python</code> opens the Store, turn those off in <em>Settings &rarr; Apps &rarr; Advanced app settings &rarr; App execution aliases</em>, or just use <code>py</code>.</p>
 
   <h3>Which version should you install?</h3>
-  <p>Unless a project pins you, take <strong>the current stable release minus one minor version</strong>. The newest release is fine for your own code but some compiled scientific packages lag a few months behind, and robotics stacks in particular pin hard: ROS 2 Jazzy expects the Python that ships with Ubuntu 24.04 (<a class="xref" href="#ch10">Chapter 10</a>). Python's versioning is <code>3.MAJOR.MINOR</code>; the number that matters for compatibility is the middle one, because <code>site-packages</code> is version-specific &mdash; which is exactly why upgrading Python appears to "delete" all your packages. It didn't; the new interpreter is simply looking in a different folder.</p>
+  <p>Unless a project pins you, take <strong>the current stable release minus one minor version</strong>. The newest release is fine for your own code but some compiled scientific packages lag a few months behind, and robotics stacks in particular pin hard: ROS 2 Jazzy is built against the Python that ships with its Tier&nbsp;1 platform, Ubuntu 24.04 (<a class="xref" href="#ch10">Chapter 10</a>), so the system interpreter is the one its packages expect. Python's versioning is <code>3.MAJOR.MINOR</code>; the number that matters for compatibility is the middle one, because <code>site-packages</code> is version-specific &mdash; which is exactly why upgrading Python appears to "delete" all your packages. It didn't; the new interpreter is simply looking in a different folder.</p>
 
   <div class="box cmd">
     <span class="h">Try it — take inventory</span>
@@ -712,7 +713,7 @@ python -m pip --version                   # which env pip manages</code></pre>
   <table>
     <tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr>
     <tr><td><code>ModuleNotFoundError</code> after a successful install</td><td>pip and python are different environments</td><td>Always <code>python -m pip install</code>; check <code>pip --version</code></td></tr>
-    <tr><td><code>error: externally-managed-environment</code></td><td>Installing into the OS Python (correctly blocked)</td><td>Make a venv. Don't use <code>--break-system-packages</code>.</td></tr>
+    <tr><td><code>error: externally-managed-environment</code></td><td>Installing into a distro-managed Python — PEP&nbsp;668, correctly blocking you</td><td>Make a venv. Don't use <code>--break-system-packages</code>.</td></tr>
     <tr><td><code>No module named venv</code> (Ubuntu)</td><td><code>python3-venv</code> isn't installed</td><td><code>sudo apt install python3-venv</code></td></tr>
     <tr><td>PowerShell: "running scripts is disabled"</td><td>Execution policy blocks the activate script</td><td><code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code></td></tr>
     <tr><td><code>command not found: pip</code> inside a venv</td><td>Venv made without pip, or PATH is stale</td><td><code>python -m ensurepip --upgrade</code></td></tr>
@@ -874,6 +875,44 @@ python -m pip install -r requirements.txt</code></pre>
     <span class="h">A closing word</span>
     Python's environment story has a bad reputation, and some of it is earned &mdash; the ecosystem is fragmented and the error messages are rarely as helpful as they could be. But the underlying model is genuinely simple, and it's the same model under every tool in <a class="xref" href="#ch8">Chapter 8</a>: an interpreter, a folder of packages, and a PATH that decides which pair you get. Everything else is convenience on top. Once you can picture that &mdash; and once checking <code>sys.executable</code> is reflex rather than something you remember to do &mdash; the errors stop feeling arbitrary and start reading like plain statements of fact about which folder something is in. That shift, from mystery to mechanism, is what this book was for. Now go make a venv.
   </div>
+
+  <h2 class="chap" id="sources">Sources &amp; Further Reading <span class="n">— Appendix</span></h2>
+  <p class="intro">Python packaging is a topic with a great deal of confidently-wrong writing about it, so this book leans on the specifications and the official tool documentation rather than on tutorials. Where a claim is about behaviour you can check yourself &mdash; what <code>sys.prefix</code> reports, what activation does to <code>PATH</code> &mdash; the primary source is your own interpreter, and the Try-it boxes throughout are there so you verify rather than take it on faith.</p>
+
+  <div class="box warn">
+    <span class="h">Verify versions against your own system</span>
+    Every version number, command, and API signature here was checked against the sources below on <strong>11 August 2026</strong>. Software moves: distributions reach end of life, SDKs restructure, and keybindings change between releases. Where this book and the current official documentation disagree, <strong>the official documentation is right</strong> &mdash; and the link to it is in this appendix.
+  </div>
+
+  <h3>Specifications</h3>
+  <table>
+    <tr><th>Source</th><th>Publisher</th><th>Used for</th></tr>
+    <tr><td><a href="https://peps.python.org/pep-0668/" target="_blank" rel="noopener noreferrer">PEP 668 — Marking Python base environments as "externally managed"</a></td><td>Python Software Foundation</td><td>The <code>externally-managed-environment</code> error, and why distributions block system-wide pip installs</td></tr>
+    <tr><td><a href="https://peps.python.org/pep-0405/" target="_blank" rel="noopener noreferrer">PEP 405 — Python Virtual Environments</a></td><td>Python Software Foundation</td><td>What a venv actually is on disk, and the <code>sys.prefix</code> mechanism behind it</td></tr>
+    <tr><td><a href="https://peps.python.org/pep-0508/" target="_blank" rel="noopener noreferrer">PEP 508 — Dependency specification</a></td><td>Python Software Foundation</td><td>Version specifiers and environment markers in requirements files</td></tr>
+    <tr><td><a href="https://packaging.python.org/en/latest/specifications/binary-distribution-format/" target="_blank" rel="noopener noreferrer">PEP 427 / Binary distribution format (wheels)</a></td><td>Python Packaging Authority</td><td>Wheels vs source distributions, and why a missing wheel means a compiler error</td></tr>
+  </table>
+
+  <h3>Official tool documentation</h3>
+  <table>
+    <tr><th>Source</th><th>Publisher</th><th>Used for</th></tr>
+    <tr><td><a href="https://docs.python.org/3/library/venv.html" target="_blank" rel="noopener noreferrer">venv — Creation of virtual environments</a></td><td>Python docs</td><td>Creation flags including <code>--system-site-packages</code> and <code>--upgrade-deps</code></td></tr>
+    <tr><td><a href="https://docs.python.org/3/library/sys.html" target="_blank" rel="noopener noreferrer">sys.path, sys.prefix, sys.executable</a></td><td>Python docs</td><td>The diagnostic commands in Chapter 3</td></tr>
+    <tr><td><a href="https://docs.python.org/3/library/sys_path_init.html" target="_blank" rel="noopener noreferrer">The initialization of the sys.path module search path</a></td><td>Python docs</td><td>Why a local <code>random.py</code> shadows the standard library</td></tr>
+    <tr><td><a href="https://pip.pypa.io/en/stable/" target="_blank" rel="noopener noreferrer">pip documentation</a></td><td>PyPA</td><td>Install options, requirements files, the resolver and its backtracking</td></tr>
+    <tr><td><a href="https://packaging.python.org/" target="_blank" rel="noopener noreferrer">Python Packaging User Guide</a></td><td>PyPA</td><td>Tool comparison behind Chapter 8 and Appendix B</td></tr>
+    <tr><td><a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener noreferrer">uv documentation</a></td><td>Astral</td><td><code>uv venv</code>, <code>uv pip compile</code>, <code>uv pip sync</code></td></tr>
+    <tr><td><a href="https://docs.conda.io/projects/conda/en/stable/user-guide/" target="_blank" rel="noopener noreferrer">conda user guide</a></td><td>Anaconda</td><td>Environment export/create, and mixing conda with pip</td></tr>
+    <tr><td><a href="https://ipython.readthedocs.io/en/stable/install/kernel_install.html" target="_blank" rel="noopener noreferrer">ipykernel — Installing kernels</a></td><td>Jupyter</td><td>Registering a venv as a notebook kernel (Chapter 9)</td></tr>
+    <tr><td><a href="https://ipython.readthedocs.io/en/stable/interactive/magics.html" target="_blank" rel="noopener noreferrer">Built-in magic commands (%pip vs !pip)</a></td><td>IPython</td><td>Why <code>%pip</code> targets the running kernel and <code>!pip</code> may not</td></tr>
+  </table>
+
+  <h3>Robotics-specific</h3>
+  <table>
+    <tr><th>Source</th><th>Publisher</th><th>Used for</th></tr>
+    <tr><td><a href="https://ros.org/reps/rep-2000.html" target="_blank" rel="noopener noreferrer">REP 2000 — ROS 2 Releases and Target Platforms</a></td><td>ROS Infrastructure</td><td>Which Ubuntu (and therefore which Python) each ROS 2 distribution is built against</td></tr>
+    <tr><td><a href="https://github.com/unitreerobotics/unitree_sdk2_python" target="_blank" rel="noopener noreferrer">unitree_sdk2_python</a></td><td>Unitree Robotics</td><td>A worked example of a vendor SDK pinning a specific dependency version</td></tr>
+  </table>
 
   <a href="#" class="backtop" id="backtop" title="Back to top">&uarr;</a>
 

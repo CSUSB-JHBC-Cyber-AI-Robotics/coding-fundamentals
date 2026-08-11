@@ -226,6 +226,7 @@
       <a class="navlink" href="#ch15"><span class="check">&#10003;</span>15 &middot; Glossary</a>
       <a class="navlink" href="#appA"><span class="check">&#10003;</span>A &middot; Keyboard Shortcuts</a>
       <a class="navlink" href="#appB"><span class="check">&#10003;</span>B &middot; Extensions Worth Having</a>
+      <a class="navlink" href="#sources"><span class="check">&#10003;</span>&#128218; Sources &amp; Further Reading</a>
     </div>
   </div>
 </nav>
@@ -266,7 +267,7 @@
 
   <div class="box tip">
     <span class="h">How to actually use it</span>
-    Have VS Code open on a second window or monitor and do things as you read. Shortcuts are shown for Windows/Linux with the macOS equivalent in brackets &mdash; as a rule, <kbd>Ctrl</kbd> becomes <kbd>&#8984;</kbd> and <kbd>Alt</kbd> becomes <kbd>&#8997;</kbd>. If you only have twenty minutes, read <a class="xref" href="#ch4">Chapter 4</a> on the command palette and <a class="xref" href="#ch9">Chapter 9</a> on debugging; those two chapters contain most of the value in this book. If you're setting up for a robotics class, <a class="xref" href="#ch5">Chapter 5</a> and <a class="xref" href="#ch11">Chapter 11</a> are the ones you'll need first.
+    Have VS Code open on a second window or monitor and do things as you read. Shortcuts are shown for <strong>Linux</strong> first, because that is what robotics work runs on; where Windows differs it is called out explicitly, and on macOS the rule of thumb is <kbd>Ctrl</kbd>&nbsp;&rarr;&nbsp;<kbd>&#8984;</kbd> and <kbd>Alt</kbd>&nbsp;&rarr;&nbsp;<kbd>&#8997;</kbd>. <strong>Several shortcuts genuinely differ between Windows and Linux</strong> &mdash; peek definition, navigate back, format document, duplicate line and add-cursor are all different keys &mdash; so do not assume a Windows tutorial's keys work on your lab machine. If you only have twenty minutes, read <a class="xref" href="#ch4">Chapter 4</a> on the command palette and <a class="xref" href="#ch9">Chapter 9</a> on debugging; those two chapters contain most of the value in this book. If you're setting up for a robotics class, <a class="xref" href="#ch5">Chapter 5</a> and <a class="xref" href="#ch11">Chapter 11</a> are the ones you'll need first.
   </div>
 
   <h2 class="part-divider" id="partI">Part I — Getting Oriented</h2>
@@ -443,12 +444,13 @@ code --uninstall-extension some.extension</code></pre>
   <p class="intro">A real terminal, docked in the editor, already in your project directory and with your virtual environment activated. It removes the constant window-switching that otherwise eats a working day.</p>
 
   <h3>Opening and managing</h3>
-  <pre><code>Ctrl+`            Toggle the terminal          [Ctrl+`]
-Ctrl+Shift+`      New terminal instance
-Ctrl+Shift+5      Split the terminal
-Ctrl+PageDown     Next terminal
-Ctrl+Shift+C      Copy   (Ctrl+C sends SIGINT, as it should)
-Ctrl+Shift+V      Paste</code></pre>
+  <pre><code>Ctrl+`                  Show integrated terminal
+Ctrl+Shift+`            Create a new terminal
+Ctrl+Shift+C            Copy selection  (Ctrl+C sends SIGINT, as it should)
+Ctrl+Shift+V            Paste into the active terminal
+Ctrl+Shift+Up / Down    Scroll up / down
+Shift+PgUp / PgDn       Scroll page up / down
+Shift+Home / End        Scroll to top / bottom</code></pre>
   <p>Note the copy/paste shortcuts. In a terminal, <kbd>Ctrl</kbd>+<kbd>C</kbd> must keep meaning "interrupt the running process" &mdash; so copy moves to <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd>. This trips up everyone once.</p>
 
   <h3>What it gives you for free</h3>
@@ -468,21 +470,24 @@ Ctrl+Shift+V      Paste</code></pre>
 
   <h3>Multi-cursor</h3>
   <p>The headline feature. Multiple cursors, all typing at once:</p>
-  <pre><code>Alt+Click              Add a cursor wherever you click
-Ctrl+Alt+Up / Down     Add a cursor above / below      [Cmd+Opt+Up/Down]
-Ctrl+D                 Select next occurrence of the selection  [Cmd+D]
-Ctrl+Shift+L           Select ALL occurrences at once   [Cmd+Shift+L]
-Shift+Alt+drag         Column (box) selection
-Escape                 Back to one cursor</code></pre>
+  <pre><code>Alt+Click                Add a cursor wherever you click
+Shift+Alt+Up / Down      Add a cursor above / below     (Windows: Ctrl+Alt+Up/Down)
+Ctrl+D                   Select next occurrence of the selection
+Ctrl+Shift+L             Select ALL occurrences at once
+Ctrl+F2                  Select all occurrences of the current word
+Shift+Alt + drag mouse   Column (box) selection
+Escape                   Back to one cursor</code></pre>
   <p><kbd>Ctrl</kbd>+<kbd>D</kbd> repeatedly is the everyday one: select a variable name, press it four times to grab the next four occurrences, and type the new name once. For renaming a variable properly across a whole project, though, use <a class="xref" href="#ch8">rename symbol</a> instead &mdash; it understands scope, whereas multi-cursor is just clever text matching.</p>
 
   <h3>Moving and duplicating lines</h3>
-  <pre><code>Alt+Up / Alt+Down            Move the line up / down          [Opt+Up/Down]
-Shift+Alt+Up / Down          Duplicate the line up / down
+  <pre><code>Alt+Up / Alt+Down            Move the line up / down
+Ctrl+Shift+Alt+Up / Down     Copy (duplicate) the line up / down
+                             (Windows: Shift+Alt+Up/Down)
 Ctrl+Shift+K                 Delete the whole line
 Ctrl+Enter                   New line below, from anywhere in the line
-Ctrl+/                       Toggle comment
-Shift+Alt+A                  Toggle block comment</code></pre>
+Ctrl+Shift+Enter             New line above
+Ctrl+/                       Toggle line comment
+Ctrl+Shift+A                 Toggle block comment  (Windows: Shift+Alt+A)</code></pre>
   <p><kbd>Alt</kbd>+<kbd>Up</kbd>/<kbd>Down</kbd> becomes reflexive fast &mdash; reordering statements without cut-and-paste, and without ever losing a line to a mistimed paste.</p>
 
   <h3>Selection and search</h3>
@@ -501,14 +506,17 @@ Alt+Enter           (in Find) select every match at once</code></pre>
   <p class="intro">Most real work is reading code you didn't write — vendor SDKs, a teammate's module, an open-source library. These are the tools that turn "where on earth is this defined" into one keystroke.</p>
 
   <h3>Jumping around</h3>
-  <pre><code>F12                  Go to definition
-Alt+F12              Peek definition — inline, without leaving the file
-Shift+F12            Find all references
-Ctrl+Click           Same as F12, with the mouse
-Alt+Left / Right     Navigate back / forward through your jumps
-Ctrl+Shift+O         Go to symbol in this file
-Ctrl+T               Go to symbol across the project
-F2                   Rename symbol — everywhere, correctly</code></pre>
+  <pre><code>F12                   Go to definition
+Ctrl+Shift+F10        Peek definition — inline, without leaving the file
+                      (Windows: Alt+F12)
+Ctrl+K F12            Open definition to the side
+Shift+F12             Show all references
+Ctrl+Click            Same as F12, with the mouse
+Ctrl+Alt+-            Navigate BACK through your jumps  (Windows: Alt+Left)
+Ctrl+Shift+-          Navigate forward                  (Windows: Alt+Right)
+Ctrl+Shift+O          Go to symbol in this file
+Ctrl+T                Show all symbols (project-wide)
+F2                    Rename symbol — everywhere, correctly</code></pre>
   <p><kbd>F12</kbd> and <kbd>Alt</kbd>+<kbd>&larr;</kbd> are a pair worth internalizing together: dive into a definition, read it, come straight back. That loop is how you read an unfamiliar SDK without losing your place, and it's the difference between "reading the code" and "grepping and hoping".</p>
 
   <h3>F2 is not find-and-replace</h3>
@@ -760,7 +768,12 @@ Ctrl+Shift+P  ->  Extensions: Disable All Installed Extensions
   </table>
 
   <h2 class="chap" id="appA">Keyboard Shortcuts <span class="n">— Appendix A</span></h2>
-  <p class="intro">Windows/Linux shown; on macOS substitute <kbd>&#8984;</kbd> for <kbd>Ctrl</kbd> and <kbd>&#8997;</kbd> for <kbd>Alt</kbd>. The full, editable list is <em>Preferences: Open Keyboard Shortcuts</em>.</p>
+  <p class="intro">Taken from VS Code's official <em>Keyboard shortcuts for Linux</em> reference &mdash; see <a class="xref" href="#sources">Sources</a>. Linux keys are given first because that is what a robotics lab runs; where Windows differs it is noted in the row. On macOS, substitute <kbd>&#8984;</kbd> for <kbd>Ctrl</kbd> and <kbd>&#8997;</kbd> for <kbd>Alt</kbd>. Your own live, editable list is always <kbd>Ctrl</kbd>+<kbd>K</kbd> <kbd>Ctrl</kbd>+<kbd>S</kbd>.</p>
+
+  <div class="box warn">
+    <span class="h">Windows and Linux are not the same</span>
+    This trips people up constantly, because most tutorials online quote the Windows keys without saying so. On <strong>Linux</strong>: peek definition is <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F10</kbd> (not <kbd>Alt</kbd>+<kbd>F12</kbd>), navigate back is <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>-</kbd> (not <kbd>Alt</kbd>+<kbd>&larr;</kbd>), format document is <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd> (not <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd>), duplicating a line is <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>&uarr;</kbd>/<kbd>&darr;</kbd>, and adding a cursor above/below is <kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>&uarr;</kbd>/<kbd>&darr;</kbd>. If a shortcut from a blog post does nothing, this is almost always why.
+  </div>
 
   <h3>The essential eight</h3>
   <table>
@@ -769,47 +782,60 @@ Ctrl+Shift+P  ->  Extensions: Disable All Installed Extensions
     <tr><td><kbd>Ctrl</kbd>+<kbd>P</kbd></td><td>Go to file</td></tr>
     <tr><td><kbd>Ctrl</kbd>+<kbd>`</kbd></td><td>Toggle terminal</td></tr>
     <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd></td><td>Search the whole project</td></tr>
-    <tr><td><kbd>F12</kbd> / <kbd>Alt</kbd>+<kbd>&larr;</kbd></td><td>Go to definition / go back</td></tr>
+    <tr><td><kbd>F12</kbd> / <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>-</kbd></td><td>Go to definition / go back <span style="color:var(--faint)">(Win: <kbd>Alt</kbd>+<kbd>&larr;</kbd>)</span></td></tr>
     <tr><td><kbd>F2</kbd></td><td>Rename symbol everywhere</td></tr>
     <tr><td><kbd>F5</kbd> / <kbd>F9</kbd></td><td>Start debugging / toggle breakpoint</td></tr>
     <tr><td><kbd>Ctrl</kbd>+<kbd>D</kbd></td><td>Select next occurrence (multi-cursor)</td></tr>
   </table>
 
   <h3>Navigation</h3>
-  <pre><code>Ctrl+P            Go to file
-Ctrl+G            Go to line
-Ctrl+Shift+O      Go to symbol in file
-Ctrl+T            Go to symbol in project
-F12               Go to definition
-Alt+F12           Peek definition
-Shift+F12         Find all references
-Alt+Left/Right    Navigate back / forward
-Ctrl+Tab          Cycle open editors</code></pre>
+  <pre><code>Ctrl+P                 Go to file
+Ctrl+G                 Go to line
+Ctrl+Shift+O           Go to symbol in file
+Ctrl+T                 Show all symbols (project-wide)
+F12                    Go to definition
+Ctrl+Shift+F10         Peek definition          (Win: Alt+F12)
+Ctrl+K F12             Open definition to the side
+Shift+F12              Show references
+Ctrl+Alt+-             Navigate back            (Win: Alt+Left)
+Ctrl+Shift+-           Navigate forward         (Win: Alt+Right)
+F8 / Shift+F8          Next / previous error or warning
+Ctrl+Tab               Cycle open editors</code></pre>
 
   <h3>Editing</h3>
-  <pre><code>Alt+Up/Down             Move line
-Shift+Alt+Up/Down       Duplicate line
-Ctrl+Shift+K            Delete line
-Ctrl+Enter              Insert line below
-Ctrl+/                  Toggle comment
-Ctrl+D                  Select next occurrence
-Ctrl+Shift+L            Select all occurrences
-Alt+Click               Add cursor
-Ctrl+Alt+Up/Down        Add cursor above / below
-Shift+Alt+F             Format document
-Ctrl+Space              Trigger suggestion</code></pre>
+  <pre><code>Alt+Up/Down                Move line up / down
+Ctrl+Shift+Alt+Up/Down     Copy line up / down      (Win: Shift+Alt+Up/Down)
+Ctrl+Shift+K               Delete line
+Ctrl+Enter                 Insert line below
+Ctrl+Shift+Enter           Insert line above
+Ctrl+/                     Toggle line comment
+Ctrl+Shift+A               Toggle block comment     (Win: Shift+Alt+A)
+Ctrl+D                     Add selection to next find match
+Ctrl+Shift+L               Select all occurrences of selection
+Ctrl+F2                    Select all occurrences of current word
+Alt+Click                  Add cursor
+Shift+Alt+Up/Down          Add cursor above / below (Win: Ctrl+Alt+Up/Down)
+Shift+Alt + drag           Column (box) selection
+Ctrl+L                     Select current line
+Ctrl+Shift+I               Format document          (Win: Shift+Alt+F)
+Ctrl+K Ctrl+F              Format selection
+Ctrl+Space                 Trigger suggestion</code></pre>
 
   <h3>View &amp; layout</h3>
-  <pre><code>Ctrl+B            Toggle side bar
+  <pre><code>Ctrl+B            Toggle side bar visibility
 Ctrl+J            Toggle panel
 Ctrl+\            Split editor
-Ctrl+1/2/3        Focus editor group
-Ctrl+W            Close tab
-Ctrl+K Z          Zen mode
-Ctrl+Shift+M      Problems panel
-Ctrl+Shift+X      Extensions
-Ctrl+Shift+G      Source control
-Ctrl+Shift+D      Run and debug</code></pre>
+Ctrl+1/2/3        Focus into 1st / 2nd / 3rd editor group
+Ctrl+W            Close editor
+Ctrl+K Z          Zen mode  (Esc Esc to exit)
+Ctrl+Shift+M      Show Problems panel
+Ctrl+Shift+E      Show Explorer
+Ctrl+Shift+F      Show Search
+Ctrl+Shift+X      Show Extensions
+Ctrl+Shift+G      Show Source Control
+Ctrl+Shift+D      Show Debug
+Ctrl+K Ctrl+H     Show Output panel
+F11               Toggle full screen</code></pre>
 
   <h3>Debug</h3>
   <pre><code>F5           Start / continue
@@ -863,6 +889,47 @@ Shift+F11    Step out</code></pre>
     <span class="h">A closing word</span>
     An editor is infrastructure. You'll spend more hours in it than in any other program you use, and small frictions repeated ten thousand times add up to real cost &mdash; not just in time, but in the ideas you don't pursue because chasing them felt like too much work. The point of learning the palette, the jumps, and the debugger isn't speed for its own sake; it's that when the cost of investigating something drops far enough, you start investigating things you would otherwise have guessed at. That's the actual upgrade. So pick two shortcuts from <a class="xref" href="#appA">Appendix A</a> you don't currently use, force yourself to use them for a week until they're automatic, and then pick two more. That's the whole method, and it works.
   </div>
+
+  <h2 class="chap" id="sources">Sources &amp; Further Reading <span class="n">— Appendix</span></h2>
+  <p class="intro">Keybindings are the part of this book most likely to be quoted wrongly elsewhere, because VS Code’s defaults genuinely differ between Linux and Windows and most blog posts silently assume Windows. Every shortcut in this book was taken from Microsoft’s official <em>Keyboard shortcuts for Linux</em> reference. Your own machine is always the final authority: <kbd>Ctrl</kbd>+<kbd>K</kbd> <kbd>Ctrl</kbd>+<kbd>S</kbd> opens the live, editable list.</p>
+
+  <div class="box warn">
+    <span class="h">Verify versions against your own system</span>
+    Every version number, command, and API signature here was checked against the sources below on <strong>11 August 2026</strong>. Software moves: distributions reach end of life, SDKs restructure, and keybindings change between releases. Where this book and the current official documentation disagree, <strong>the official documentation is right</strong> &mdash; and the link to it is in this appendix.
+  </div>
+
+  <h3>Keybindings — the authority for Appendix A</h3>
+  <table>
+    <tr><th>Source</th><th>Publisher</th><th>Used for</th></tr>
+    <tr><td><a href="https://code.visualstudio.com/shortcuts/keyboard-shortcuts-linux.pdf" target="_blank" rel="noopener noreferrer">Keyboard shortcuts for Linux (PDF)</a></td><td>Microsoft</td><td><strong>Every Linux key in this book.</strong> Peek definition, navigate back, format document, copy line, add cursor</td></tr>
+    <tr><td><a href="https://code.visualstudio.com/shortcuts/keyboard-shortcuts-windows.pdf" target="_blank" rel="noopener noreferrer">Keyboard shortcuts for Windows (PDF)</a></td><td>Microsoft</td><td>The Windows variants noted in parentheses throughout</td></tr>
+    <tr><td><a href="https://code.visualstudio.com/docs/configure/keybindings" target="_blank" rel="noopener noreferrer">Key Bindings for Visual Studio Code</a></td><td>Microsoft</td><td>How to inspect and rebind keys yourself</td></tr>
+  </table>
+
+  <h3>Official documentation</h3>
+  <table>
+    <tr><th>Source</th><th>Publisher</th><th>Used for</th></tr>
+    <tr><td><a href="https://code.visualstudio.com/docs" target="_blank" rel="noopener noreferrer">Visual Studio Code documentation</a></td><td>Microsoft</td><td>Interface regions, workspaces, and general behaviour</td></tr>
+    <tr><td><a href="https://code.visualstudio.com/docs/languages/python" target="_blank" rel="noopener noreferrer">Python in Visual Studio Code</a></td><td>Microsoft</td><td>Interpreter selection, linting, formatting (Chapter 5)</td></tr>
+    <tr><td><a href="https://code.visualstudio.com/docs/python/environments" target="_blank" rel="noopener noreferrer">Python environments in VS Code</a></td><td>Microsoft</td><td>Why the editor’s interpreter and the terminal’s can disagree</td></tr>
+    <tr><td><a href="https://code.visualstudio.com/docs/python/debugging" target="_blank" rel="noopener noreferrer">Python debugging in VS Code</a></td><td>Microsoft</td><td>The <code>debugpy</code> launch type, <code>justMyCode</code>, and launch.json</td></tr>
+    <tr><td><a href="https://code.visualstudio.com/docs/debugtest/debugging" target="_blank" rel="noopener noreferrer">Debugging in Visual Studio Code</a></td><td>Microsoft</td><td>Breakpoints, logpoints, conditional breakpoints, the debug console</td></tr>
+    <tr><td><a href="https://code.visualstudio.com/docs/terminal/basics" target="_blank" rel="noopener noreferrer">Integrated Terminal</a></td><td>Microsoft</td><td>Terminal profiles, copy/paste keys, clickable paths</td></tr>
+    <tr><td><a href="https://code.visualstudio.com/docs/remote/ssh" target="_blank" rel="noopener noreferrer">Remote Development using SSH</a></td><td>Microsoft</td><td>Chapter 11 in full — including that extensions install per-host</td></tr>
+    <tr><td><a href="https://code.visualstudio.com/docs/sourcecontrol/overview" target="_blank" rel="noopener noreferrer">Using Git source control in VS Code</a></td><td>Microsoft</td><td>Staging ranges, diffs, and the 3-way merge editor</td></tr>
+    <tr><td><a href="https://code.visualstudio.com/docs/configure/settings" target="_blank" rel="noopener noreferrer">User and Workspace Settings</a></td><td>Microsoft</td><td>The settings precedence layers in Chapter 12</td></tr>
+    <tr><td><a href="https://code.visualstudio.com/docs/configure/profiles" target="_blank" rel="noopener noreferrer">Profiles in Visual Studio Code</a></td><td>Microsoft</td><td>Profiles and Settings Sync</td></tr>
+  </table>
+
+  <h3>Extensions cited in Appendix B</h3>
+  <table>
+    <tr><th>Source</th><th>Publisher</th><th>Used for</th></tr>
+    <tr><td><a href="https://marketplace.visualstudio.com/items?itemName=ms-python.python" target="_blank" rel="noopener noreferrer">Python (ms-python.python)</a></td><td>Microsoft / VS Marketplace</td><td>Extension ID verification</td></tr>
+    <tr><td><a href="https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff" target="_blank" rel="noopener noreferrer">Ruff (charliermarsh.ruff)</a></td><td>Astral / VS Marketplace</td><td>Linting and formatting configuration in Chapter 5</td></tr>
+    <tr><td><a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh" target="_blank" rel="noopener noreferrer">Remote - SSH (ms-vscode-remote.remote-ssh)</a></td><td>Microsoft / VS Marketplace</td><td>Extension ID verification</td></tr>
+    <tr><td><a href="https://marketplace.visualstudio.com/items?itemName=ms-iot.vscode-ros" target="_blank" rel="noopener noreferrer">ROS (ms-iot.vscode-ros)</a></td><td>Microsoft / VS Marketplace</td><td>Extension ID verification</td></tr>
+    <tr><td><a href="https://vscodium.com/" target="_blank" rel="noopener noreferrer">VSCodium</a></td><td>VSCodium project</td><td>Why Microsoft-licensed extensions (including Remote-SSH) are unavailable there</td></tr>
+  </table>
 
   <a href="#" class="backtop" id="backtop" title="Back to top">&uarr;</a>
 
