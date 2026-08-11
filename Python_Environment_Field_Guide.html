@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A practical guide to Python environments — installing Python, virtual environments, pip, requirements files, conda and uv, and untangling the "wrong Python" problems that break robotics and data projects.">
+<title>The Python Environment Field Guide</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --panel3:#222b3a;
+    --ink:#c9d1d9; --dim:#8b949e; --faint:#6e7681;
+    --cyan:#39d0d8; --orange:#ff9e44; --green:#56d364; --red:#f47272;
+    --amber:#e3b341; --purple:#bc8cff; --blue:#6cb6ff; --pink:#f778ba;
+    --line:#30363d; --code:#0b1622; --sel:#1f6feb44;
+    --shadow:0 8px 30px rgba(0,0,0,.45);
+    --fs:16px; --navw:316px; --topbarh:50px;
+    --accent:var(--orange);
+  }
+  html[data-theme="light"]{
+    --bg:#f6f8fa; --panel:#ffffff; --panel2:#eef1f5; --panel3:#e4e9f0;
+    --ink:#1f2328; --dim:#57606a; --faint:#818b98;
+    --cyan:#0b8c97; --orange:#bc5d18; --green:#1a7f37; --red:#cf222e;
+    --amber:#9a6700; --purple:#8250df; --blue:#0969da; --pink:#bf3989;
+    --line:#d0d7de; --code:#f3f5f8; --sel:#0969da22;
+    --shadow:0 8px 30px rgba(140,149,159,.25);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  ::selection{background:var(--sel)}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;line-height:1.65;font-size:var(--fs);transition:background .25s ease,color .25s ease}
+  a{color:var(--accent)}
+  /* ---- commit-graph theme backdrop ---- */
+  #fx{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.13;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg fill='none' stroke='%23ff9e44' stroke-width='1.5' opacity='0.5'%3E%3Cpath d='M34 0 V120'/%3E%3Cpath d='M34 30 C34 44 78 42 78 56 C78 70 34 68 34 82'/%3E%3C/g%3E%3Cg fill='%23ff9e44' opacity='0.65'%3E%3Ccircle cx='34' cy='16' r='3'/%3E%3Ccircle cx='34' cy='100' r='3'/%3E%3Ccircle cx='78' cy='56' r='3'/%3E%3C/g%3E%3C/svg%3E");background-size:120px 120px;background-repeat:repeat}
+  html[data-theme="light"] #fx{opacity:.07}
+  /* ---- engine ---- */
+  #progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--orange),var(--red));z-index:60;transition:width .1s linear}
+  #topbar{position:fixed;top:0;left:var(--navw);right:0;height:var(--topbarh);z-index:45;display:flex;align-items:center;gap:10px;padding:0 20px;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  #topbar .crumb{font-size:13px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+  #topbar .crumb b{color:var(--ink)}
+  #topbar button,#topbar .kbtn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);height:32px;border-radius:7px;cursor:pointer;font-family:inherit;font-size:13px;padding:0 10px;display:inline-flex;align-items:center;gap:6px;transition:all .15s ease}
+  #topbar button:hover,#topbar .kbtn:hover{border-color:var(--accent);color:var(--accent)}
+  #topbar .icobtn{width:32px;padding:0;justify-content:center;font-size:15px}
+  #hamburger{display:none}
+  .kbtn .k{font-size:11px;color:var(--faint);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+  #nav{position:fixed;top:0;left:0;width:var(--navw);height:100vh;overflow-y:auto;background:color-mix(in srgb,var(--panel) 92%,transparent);border-right:1px solid var(--line);padding:16px 12px 80px;z-index:50;backdrop-filter:blur(6px);scrollbar-width:thin;scrollbar-color:var(--line) transparent;transition:transform .25s ease}
+  #nav::-webkit-scrollbar{width:9px}#nav::-webkit-scrollbar-thumb{background:var(--line);border-radius:5px}
+  #nav .brand{display:flex;align-items:center;gap:9px;margin-bottom:2px}
+  #nav .brand .logo{width:28px;height:28px;flex:none}
+  #nav h1{font-size:14px;color:var(--accent);margin:0;letter-spacing:.3px}
+  #nav .sub{font-size:11px;color:var(--dim);margin:2px 0 10px 37px}
+  #navsearch{width:100%;background:var(--code);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px 10px 8px 30px;font-size:12.5px;font-family:inherit;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238b949e' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:9px center}
+  #navsearch:focus{outline:none;border-color:var(--accent)}
+  #readbar{margin:10px 2px 6px;font-size:11px;color:var(--dim)}
+  #readbar .track{height:5px;background:var(--panel3);border-radius:3px;margin-top:4px;overflow:hidden}
+  #readbar .fill{height:100%;width:0;background:linear-gradient(90deg,var(--orange),var(--red));transition:width .3s ease}
+  .navpart{margin-top:8px}
+  button.part{width:100%;text-align:left;background:none;border:none;cursor:pointer;font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--purple);font-weight:700;padding:8px 6px 4px;display:flex;align-items:center;justify-content:space-between;font-family:inherit}
+  button.part:hover{color:var(--accent)}
+  button.part .caret{transition:transform .2s ease;font-size:9px;color:var(--faint)}
+  .navpart.collapsed button.part .caret{transform:rotate(-90deg)}
+  .navlinks{overflow:hidden;transition:max-height .25s ease;max-height:2400px}
+  .navpart.collapsed .navlinks{max-height:0}
+  a.navlink{display:flex;align-items:center;gap:7px;color:var(--dim);text-decoration:none;font-size:12.5px;padding:4px 8px;border-radius:6px;border-left:2px solid transparent;line-height:1.4;transition:all .12s ease}
+  a.navlink:hover{color:var(--ink);background:var(--panel2)}
+  a.navlink.active{color:var(--accent);border-left-color:var(--accent);background:var(--panel2)}
+  a.navlink.hidden{display:none}
+  a.navlink .check{width:14px;height:14px;flex:none;border:1.5px solid var(--line);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:transparent;transition:all .15s ease}
+  a.navlink.read .check{background:var(--green);border-color:var(--green);color:#04210c}
+  a.navlink.read{color:var(--faint)}
+  #scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:46;opacity:0;pointer-events:none;transition:opacity .25s}
+  body.navopen #scrim{opacity:1;pointer-events:auto}
+  #wrap{position:relative;z-index:1;margin-left:var(--navw);padding:calc(var(--topbarh) + 4px) 40px 0}
+  .content{max-width:880px;margin:0 auto;padding:30px 0 140px}
+  h2.chap{font-size:29px;color:var(--accent);border-bottom:2px solid var(--accent);padding-bottom:8px;margin:64px 0 4px;scroll-margin-top:64px;position:relative}
+  h2.chap .n{color:var(--faint);font-size:17px;font-weight:400}
+  .readtime{font-size:12px;color:var(--faint);margin:0 0 14px;display:flex;align-items:center;gap:6px}
+  h2.part-divider{font-size:13px;text-transform:uppercase;letter-spacing:3px;color:var(--purple);margin:80px 0 0;padding:0;border:none;scroll-margin-top:64px;font-weight:700}
+  h3{font-size:20px;color:var(--orange);margin:34px 0 8px;scroll-margin-top:64px}
+  h4{font-size:15px;color:var(--purple);margin:22px 0 6px;text-transform:uppercase;letter-spacing:.5px}
+  .anchor{opacity:0;margin-left:8px;font-size:.7em;text-decoration:none;color:var(--faint);transition:opacity .15s}
+  h2.chap:hover .anchor,h3:hover .anchor{opacity:1}
+  p{margin:10px 0}ul,ol{margin:10px 0;padding-left:24px}li{margin:5px 0}
+  strong{color:var(--ink);font-weight:600}html[data-theme="dark"] strong{color:#e6edf3}em{color:var(--ink)}
+  code{background:var(--code);color:var(--accent);padding:1px 6px;border-radius:4px;font-family:'Consolas','Courier New',monospace;font-size:13.5px}
+  .codewrap{position:relative;margin:14px 0}
+  pre{background:var(--code);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0}
+  pre code{background:none;color:#d6e3f0;padding:0;font-size:13.5px;line-height:1.55}
+  pre .c{color:var(--faint)}pre .k{color:var(--orange)}pre .o{color:var(--green)}pre .a{color:var(--amber)}
+  .copybtn{position:absolute;top:8px;right:8px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);border-radius:6px;font-size:11px;padding:3px 9px;cursor:pointer;opacity:0;transition:all .15s;font-family:inherit}
+  .codewrap:hover .copybtn{opacity:1}.copybtn:hover{border-color:var(--accent);color:var(--accent)}.copybtn.done{color:var(--green);border-color:var(--green)}
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent)}
+  tr:nth-child(even) td{background:color-mix(in srgb,var(--ink) 3%,transparent)}
+  table.lookup th{position:sticky;top:var(--topbarh);z-index:2}
+  .box{border-radius:10px;padding:12px 16px;margin:16px 0;border-left:4px solid;position:relative;background:color-mix(in srgb,var(--panel) 70%,transparent)}
+  .box .h{font-weight:700;text-transform:uppercase;letter-spacing:.5px;font-size:12px;margin-bottom:4px;display:flex;align-items:center;gap:7px}
+  .box .h::before{font-size:14px;font-family:'Segoe UI Emoji',sans-serif}
+  .field{border-color:var(--cyan)}.field .h{color:var(--cyan)}.field .h::before{content:"\1F500"}
+  .tip{border-color:var(--green)}.tip .h{color:var(--green)}.tip .h::before{content:"\1F4A1"}
+  .warn{border-color:var(--amber)}.warn .h{color:var(--amber)}.warn .h::before{content:"\26A0\FE0F"}
+  .danger{border-color:var(--red)}.danger .h{color:var(--red)}.danger .h::before{content:"\1F6D1"}
+  .lab{border-color:var(--purple)}.lab .h{color:var(--purple)}.lab .h::before{content:"\1F9EA"}
+  .case{border-color:var(--blue)}.case .h{color:var(--blue)}.case .h::before{content:"\1F4DC"}
+  .cmd{border-color:var(--orange)}.cmd .h{color:var(--orange)}.cmd .h::before{content:"\2328\FE0F"}
+  .intro{font-size:15px;color:var(--dim);font-style:italic;border-left:3px solid var(--line);padding-left:14px;margin:8px 0 20px}
+  .cover{padding:30px 0 22px;border-bottom:1px solid var(--line);margin-bottom:20px}
+  .cover h1{font-size:44px;color:var(--accent);margin:0 0 6px;letter-spacing:.5px;background:linear-gradient(90deg,var(--orange),var(--purple));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .cover .tag{font-size:18px;color:var(--orange);margin-bottom:18px}
+  .cover .by{font-size:14px;color:var(--dim)}
+  .cover .ed{font-size:12px;color:var(--faint);margin-top:14px;letter-spacing:.5px}
+  kbd{background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 6px;font-size:12px;font-family:monospace}
+  hr{border:none;border-top:1px solid var(--line);margin:40px 0}
+  a.xref{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)}a.xref:hover{border-bottom-style:solid}
+  figure{margin:22px 0;text-align:center}
+  figure svg{max-width:100%;height:auto;background:var(--code);border:1px solid var(--line);border-radius:10px;padding:10px}
+  figcaption{font-size:12.5px;color:var(--dim);margin-top:8px;font-style:italic}
+  svg text{font-family:'Segoe UI',system-ui,sans-serif}
+  svg .box-f{fill:var(--panel2);stroke:var(--orange);stroke-width:1.5}
+  svg .box-w{fill:var(--panel2);stroke:var(--amber);stroke-width:1.5}
+  svg .box-d{fill:var(--panel2);stroke:var(--red);stroke-width:1.5}
+  svg .box-b{fill:var(--panel2);stroke:var(--blue);stroke-width:1.5}
+  svg .box-g{fill:var(--panel2);stroke:var(--green);stroke-width:1.5}
+  svg .box-v{fill:var(--panel2);stroke:var(--purple);stroke-width:1.5}
+  svg .lbl{fill:var(--ink);font-size:13px}svg .lbl-s{fill:var(--dim);font-size:11px}svg .lbl-t{fill:var(--orange);font-size:13px;font-weight:700}
+  svg .arr{stroke:var(--dim);stroke-width:1.5;fill:none}svg .arrm{stroke:var(--ink);stroke-width:1.5;fill:none}
+  .pager{display:flex;gap:14px;margin:50px 0 0;border-top:1px solid var(--line);padding-top:22px}
+  .pager a{flex:1;text-decoration:none;border:1px solid var(--line);border-radius:10px;padding:12px 16px;color:var(--ink);transition:all .15s ease;background:color-mix(in srgb,var(--panel) 60%,transparent)}
+  .pager a:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
+  .pager .dir{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:1px}
+  .pager .ttl{font-size:14px;color:var(--accent);margin-top:3px}.pager .next{text-align:right}.pager .empty{visibility:hidden}
+  #palette{position:fixed;inset:0;z-index:70;display:none;align-items:flex-start;justify-content:center;background:rgba(1,4,9,.6);backdrop-filter:blur(3px);padding-top:12vh}
+  #palette.open{display:flex}
+  #palbox{width:min(620px,92vw);max-height:70vh;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+  #palinput{border:none;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);font-size:16px;padding:16px 18px;font-family:inherit;outline:none}
+  #palresults{overflow-y:auto;padding:6px}
+  .palitem{display:flex;align-items:baseline;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer}
+  .palitem .lvl{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--faint);min-width:46px}
+  .palitem .txt{font-size:14px;color:var(--ink)}.palitem .ctx{font-size:11px;color:var(--faint);margin-left:auto}
+  .palitem.sel,.palitem:hover{background:var(--panel2)}.palitem.sel .txt{color:var(--accent)}
+  #palhint{padding:8px 14px;border-top:1px solid var(--line);font-size:11px;color:var(--faint);display:flex;gap:14px}#palhint b{color:var(--dim);font-weight:600}
+  .backtop{position:fixed;bottom:22px;right:24px;background:var(--panel2);border:1px solid var(--line);color:var(--accent);width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:17px;opacity:0;pointer-events:none;transition:opacity .25s,transform .15s;z-index:40;box-shadow:var(--shadow)}
+  .backtop.show{opacity:.9;pointer-events:auto}.backtop:hover{opacity:1;transform:translateY(-3px)}
+  @media(max-width:980px){:root{--navw:0px}#nav{transform:translateX(-105%);width:300px;box-shadow:var(--shadow)}body.navopen #nav{transform:translateX(0)}#topbar{left:0}#hamburger{display:inline-flex}#wrap{padding-left:18px;padding-right:18px}}
+  @media print{#nav,#topbar,#progress,.backtop,.copybtn,.pager,.anchor,#fx{display:none!important}#wrap{margin:0;padding:0}}
+</style>
+
+<style>
+  :root{--accent:var(--blue)}
+  #progress,#readbar .fill{background:linear-gradient(90deg,var(--blue),var(--amber))}
+  .cover h1{background:linear-gradient(90deg,var(--blue),var(--amber))}
+  .cover .tag{color:var(--blue)}
+  h3{color:var(--blue)}
+  h4,h2.part-divider,button.part{color:var(--amber)}
+  pre .k{color:var(--blue)}
+  .cmd{border-color:var(--blue)}.cmd .h{color:var(--blue)}
+  .lab{border-color:var(--amber)}.lab .h{color:var(--amber)}
+  svg .box-f{stroke:var(--blue)}svg .lbl-t{fill:var(--blue)}
+  svg .box-v{stroke:var(--amber)}
+  #fx{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+    background:linear-gradient(rgba(108,182,255,.045) 1px,transparent 1px) 0 0/100% 26px;
+    animation:pyscroll 20s linear infinite}
+  @keyframes pyscroll{from{background-position:0 0}to{background-position:0 -260px}}
+  html[data-theme="light"] #fx{opacity:.35}
+  @media(prefers-reduced-motion:reduce){#fx{animation:none}}
+</style>
+
+<style>
+  /* links to Field Guides that live outside this site — kept readable, not clickable */
+  .xref-offsite{color:var(--dim);border-bottom:1px dotted var(--faint);cursor:help}
+</style>
+</head>
+<body>
+<div id="fx" aria-hidden="true"></div>
+<div id="progress"></div>
+
+<nav id="nav">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M16 4c-4 0-6 1.6-6 4v3h6v1.4H8.4C6 12.4 4.6 14 4.6 17.6S6 22.8 8.4 22.8H11v-3.4c0-2.6 2-4.4 4.6-4.4h4.8c2.2 0 3.8-1.6 3.8-3.8V8c0-2.4-2-4-6-4z" fill="none" stroke="var(--blue)" stroke-width="1.7" stroke-linejoin="round"/>
+      <path d="M16 28c4 0 6-1.6 6-4v-3h-6v-1.4h7.6c2.4 0 3.8-1.6 3.8-5.2S26 9.2 23.6 9.2H21v3.4c0 2.6-2 4.4-4.6 4.4h-4.8C9.4 17 7.8 18.6 7.8 20.8V24c0 2.4 2 4 6 4z" fill="none" stroke="var(--amber)" stroke-width="1.7" stroke-linejoin="round"/>
+      <circle cx="13" cy="8" r="1.2" fill="var(--blue)"/><circle cx="19" cy="24" r="1.2" fill="var(--amber)"/>
+    </svg>
+    <h1>PYTHON ENVIRONMENT GUIDE</h1>
+  </div>
+  <div class="sub">Interpreters, Virtual Environments &amp; Packages</div>
+  <input id="navsearch" type="text" placeholder="Filter chapters&hellip;" autocomplete="off" spellcheck="false">
+  <div id="readbar"><span id="readlabel">0 of 0 read</span><div class="track"><div class="fill" id="readfill"></div></div></div>
+
+  <div class="navpart">
+    <button class="part">Front Matter <span class="caret">&#9660;</span></button>
+    <div class="navlinks">
+      <a class="navlink" href="#how-to-read"><span class="check">&#10003;</span>How to Read This Book</a>
+    </div>
+  </div>
+  <div class="navpart">
+    <button class="part">Part I &mdash; The Interpreter <span class="caret">&#9660;</span></button>
+    <div class="navlinks">
+      <a class="navlink" href="#ch1"><span class="check">&#10003;</span>1 &middot; What an Environment Is</a>
+      <a class="navlink" href="#ch2"><span class="check">&#10003;</span>2 &middot; Installing Python</a>
+      <a class="navlink" href="#ch3"><span class="check">&#10003;</span>3 &middot; Which Python Am I Running?</a>
+    </div>
+  </div>
+  <div class="navpart">
+    <button class="part">Part II &mdash; Isolation <span class="caret">&#9660;</span></button>
+    <div class="navlinks">
+      <a class="navlink" href="#ch4"><span class="check">&#10003;</span>4 &middot; Why Virtual Environments</a>
+      <a class="navlink" href="#ch5"><span class="check">&#10003;</span>5 &middot; venv, Start to Finish</a>
+      <a class="navlink" href="#ch6"><span class="check">&#10003;</span>6 &middot; Installing Packages with pip</a>
+      <a class="navlink" href="#ch7"><span class="check">&#10003;</span>7 &middot; requirements.txt</a>
+    </div>
+  </div>
+  <div class="navpart">
+    <button class="part">Part III &mdash; The Ecosystem <span class="caret">&#9660;</span></button>
+    <div class="navlinks">
+      <a class="navlink" href="#ch8"><span class="check">&#10003;</span>8 &middot; conda, uv, Poetry &amp; Friends</a>
+      <a class="navlink" href="#ch9"><span class="check">&#10003;</span>9 &middot; Environments &amp; Notebooks</a>
+      <a class="navlink" href="#ch10"><span class="check">&#10003;</span>10 &middot; Environments in Robotics</a>
+    </div>
+  </div>
+  <div class="navpart">
+    <button class="part">Part IV &mdash; Practice &amp; Reference <span class="caret">&#9660;</span></button>
+    <div class="navlinks">
+      <a class="navlink" href="#ch11"><span class="check">&#10003;</span>11 &middot; Troubleshooting</a>
+      <a class="navlink" href="#ch12"><span class="check">&#10003;</span>12 &middot; Lab Exercises</a>
+      <a class="navlink" href="#ch13"><span class="check">&#10003;</span>13 &middot; Glossary</a>
+      <a class="navlink" href="#appA"><span class="check">&#10003;</span>A &middot; Command Cheat-Sheet</a>
+      <a class="navlink" href="#appB"><span class="check">&#10003;</span>B &middot; Which Tool Should I Use?</a>
+    </div>
+  </div>
+</nav>
+
+<div id="scrim"></div>
+
+<header id="topbar">
+  <button id="hamburger" class="icobtn" title="Menu" aria-label="Toggle navigation">&#9776;</button>
+  <div class="crumb" id="crumb">The Python Environment Field Guide</div>
+  <button class="kbtn" id="palbtn" title="Search everything (Ctrl-K)"><span>&#128269; Search</span> <span class="k">Ctrl K</span></button>
+  <button class="icobtn" id="fsdown" title="Smaller text">A&#8722;</button>
+  <button class="icobtn" id="fsup" title="Larger text">A+</button>
+  <button class="icobtn" id="themebtn" title="Toggle light/dark">&#9789;</button>
+</header>
+
+<div id="wrap">
+<div class="content">
+
+  <div class="cover">
+    <h1>The Python Environment Field Guide</h1>
+    <div class="tag">Interpreters, Virtual Environments &amp; Packages</div>
+    <div class="by">Almost every "it works on my machine" story in Python is really an <em>environment</em> story &mdash; the wrong interpreter, a package installed somewhere the interpreter never looks, a version that quietly upgraded underneath a project. This book teaches the one mental model that dissolves all of it: a Python environment is just a folder containing an interpreter and its packages, and every command you run picks one. Once you can answer "which Python am I actually running, and where do its packages live?" the errors stop being mysteries and become questions with obvious answers.</div>
+    <div class="ed">A companion in the Field Guide series &middot; pairs with the Linux, VS Code &amp; Git guides &middot; offline, self-contained</div>
+  </div>
+
+<div class="box tip">
+    <span class="h">This book is interactive</span>
+    Press <kbd>Ctrl</kbd>+<kbd>K</kbd> to search every heading; tick the sidebar <strong>checkboxes</strong> to track progress (or press <kbd>R</kbd>); use <kbd>&larr;</kbd>/<kbd>&rarr;</kbd> to move chapter to chapter; toggle light/dark and text size top-right; hover any command block to <strong>copy</strong> it. Look for <span style="color:var(--blue)">&#x2328;&#xFE0F; Try it</span> boxes &mdash; run them in a scratch folder, because environments only make sense once you've made and broken a few. Everything works offline.
+  </div>
+
+  <h2 class="chap" id="how-to-read">How to Read This Book <span class="n">— Front Matter</span></h2>
+  <p class="intro">This is a short book about a topic that wastes an enormous amount of people's time. Read Part I and Part II in order — they are the whole foundation — then treat the rest as reference you come back to when a specific problem finds you.</p>
+
+  <div class="box field">
+    <span class="h">The journey, part by part</span>
+    <strong>Part I (The Interpreter)</strong> builds the mental model: what an "environment" actually is on disk, how to install Python without breaking your system, and how to answer the single most important debugging question in Python &mdash; <em>which interpreter is running right now?</em> <strong>Part II (Isolation)</strong> is the core skill: virtual environments, <code>pip</code>, and <code>requirements.txt</code>, which together make a project reproducible on someone else's machine. <strong>Part III (The Ecosystem)</strong> covers the alternatives you'll meet in the wild &mdash; conda, uv, Poetry &mdash; plus how environments interact with Jupyter notebooks and with robotics stacks like ROS 2. <strong>Part IV</strong> is troubleshooting, labs, and the reference pages you'll actually keep open.
+  </div>
+
+  <div class="box tip">
+    <span class="h">How to actually use it</span>
+    Have a terminal open. Every chapter in Part II has commands you should run, and the muscle memory is the point &mdash; <code>python3 -m venv .venv</code> should eventually be something your fingers type without consulting anything. If you're short on time and just need to get working <em>today</em>, read <a class="xref" href="#ch5">Chapter 5</a> and <a class="xref" href="#appA">Appendix A</a>, then come back. If you're here because something is broken right now, jump straight to <a class="xref" href="#ch11">Chapter 11</a>. This guide assumes basic comfort at a command line; if that's shaky, the <a class="xref" href="Linux_Field_Guide.html#ch5">Linux Field Guide</a> covers the shell from zero.
+  </div>
+
+  <div class="box warn">
+    <span class="h">The one rule, stated up front</span>
+    <strong>Never install project packages into your system Python.</strong> Not with <code>sudo pip install</code>, not with a bare <code>pip install</code> that happens to hit the system interpreter. Your operating system uses its Python for its own tools; packages you shove in there can break them, and you will eventually hit a version conflict you cannot untangle. Make a virtual environment per project. It takes eight seconds and it is the entire difference between Python being pleasant and Python being a source of dread. Modern Python (3.11+) actually blocks this by default with an <code>externally-managed-environment</code> error &mdash; that error is your friend, not an obstacle to work around.
+  </div>
+
+  <h2 class="part-divider" id="partI">Part I — The Interpreter</h2>
+
+  <h2 class="chap" id="ch1">What an Environment Is <span class="n">— Chapter 1</span></h2>
+  <p class="intro">Strip away the tooling and a Python environment is an unglamorous thing: a folder with an interpreter in it and a folder of packages next to it. Almost every confusing error makes sense once you can picture that.</p>
+
+  <h3>An environment is a folder</h3>
+  <p>When you run <code>python</code>, your shell finds an executable file somewhere on disk and runs it. That executable is <strong>the interpreter</strong>. Sitting next to it &mdash; at a path the interpreter computes from its own location &mdash; is a directory called <strong>site-packages</strong>, which is where every library you install lands. An "environment" is just that pairing:</p>
+  <figure>
+  <svg viewBox="0 0 600 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A Python environment: an interpreter binary paired with a site-packages directory">
+    <rect x="12" y="20" width="260" height="190" rx="10" fill="none" stroke="var(--line)"/>
+    <text x="142" y="44" text-anchor="middle" fill="var(--dim)" font-size="12">system environment</text>
+    <rect x="30" y="58" width="224" height="40" rx="7" fill="none" stroke="var(--red)"/>
+    <text x="142" y="83" text-anchor="middle" fill="var(--red)" font-size="13">/usr/bin/python3</text>
+    <rect x="30" y="116" width="224" height="72" rx="7" fill="none" stroke="var(--dim)"/>
+    <text x="142" y="141" text-anchor="middle" fill="var(--dim)" font-size="12">/usr/lib/python3/site-packages</text>
+    <text x="142" y="163" text-anchor="middle" fill="var(--faint)" font-size="11">apt-installed libs — the OS owns these</text>
+    <text x="142" y="180" text-anchor="middle" fill="var(--faint)" font-size="11">don't touch</text>
+
+    <rect x="328" y="20" width="260" height="190" rx="10" fill="none" stroke="var(--line)"/>
+    <text x="458" y="44" text-anchor="middle" fill="var(--dim)" font-size="12">project environment (.venv)</text>
+    <rect x="346" y="58" width="224" height="40" rx="7" fill="none" stroke="var(--green)"/>
+    <text x="458" y="83" text-anchor="middle" fill="var(--green)" font-size="13">myproject/.venv/bin/python</text>
+    <rect x="346" y="116" width="224" height="72" rx="7" fill="none" stroke="var(--dim)"/>
+    <text x="458" y="141" text-anchor="middle" fill="var(--dim)" font-size="12">.venv/lib/python3.12/site-packages</text>
+    <text x="458" y="163" text-anchor="middle" fill="var(--faint)" font-size="11">numpy, requests, whatever you pip install</text>
+    <text x="458" y="180" text-anchor="middle" fill="var(--faint)" font-size="11">yours — delete it any time</text>
+
+    <line x1="272" y1="115" x2="326" y2="115" stroke="var(--faint)" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="299" y="108" text-anchor="middle" fill="var(--faint)" font-size="10">isolated</text>
+  </svg>
+  <figcaption>Two environments on one machine. Same computer, two interpreters, two separate package directories. Nothing you install on the right can break anything on the left.</figcaption>
+  </figure>
+
+  <h3>Why this picture explains everything</h3>
+  <p>Hold that image and the classic errors decode themselves:</p>
+  <table>
+    <tr><th>The error</th><th>What it actually means</th></tr>
+    <tr><td><code>ModuleNotFoundError: No module named 'numpy'</code></td><td>You installed numpy into <em>one</em> site-packages and ran a <em>different</em> interpreter. Classic mismatch.</td></tr>
+    <tr><td><code>pip install</code> says "already satisfied" but the import still fails</td><td>Same thing, seen from the other side: <code>pip</code> and <code>python</code> are pointing at different environments.</td></tr>
+    <tr><td>Code works in the terminal but not in your editor</td><td>Your editor selected a different interpreter than your shell. See <a class="xref" href="VS_Code_Field_Guide.html#ch5">the VS Code guide</a>.</td></tr>
+    <tr><td>Two projects need incompatible versions of the same library</td><td>They're sharing one site-packages. They need one each.</td></tr>
+    <tr><td><code>error: externally-managed-environment</code></td><td>You tried to install into the OS's own Python. Make a venv instead.</td></tr>
+  </table>
+  <p>Notice that four of those five are the <em>same bug</em> wearing different hats. That's the payoff of the model: instead of five memorized fixes, you have one question &mdash; <em>which environment is this command using?</em> &mdash; and <a class="xref" href="#ch3">Chapter 3</a> teaches you to answer it in two commands.</p>
+
+  <h3>What "activating" really does</h3>
+  <p>Tools talk about <strong>activating</strong> an environment as if it were a mode switch. It isn't, and believing it is causes confusion later. Activation does something much dumber: <strong>it puts the environment's <code>bin/</code> directory first on your <code>PATH</code></strong>, so that when you type <code>python</code>, the shell finds that one before the system one. That's essentially the whole trick. It also sets <code>VIRTUAL_ENV</code> and decorates your prompt so you can see what's going on.</p>
+  <p>The useful consequence: you never <em>have</em> to activate. Running <code>.venv/bin/python script.py</code> directly is exactly equivalent and is what scripts, cron jobs, and CI systems generally do. Activation is a convenience for humans typing interactively, and understanding that it's "just PATH" is what lets you debug it when it misbehaves.</p>
+
+  <div class="box field">
+    <span class="h">From the field — the question that saves the afternoon</span>
+    Experienced Python developers have an involuntary reflex: the instant an import fails, before reading the traceback closely or reaching for search, they run <code>which python</code> and <code>python -c "import sys; print(sys.executable)"</code>. Not because they suspect anything specific, but because environment mismatch is far and away the most common cause and it takes three seconds to rule out. Build that reflex now and you'll skip years of confused debugging. The corollary is a habit worth adopting today: prefer <code>python -m pip install X</code> over bare <code>pip install X</code>. The <code>-m</code> form guarantees the pip you're running belongs to the python you just named, which structurally eliminates the mismatch instead of merely detecting it.
+  </div>
+
+  <h2 class="chap" id="ch2">Installing Python <span class="n">— Chapter 2</span></h2>
+  <p class="intro">Getting Python onto a machine is easy. Getting it on in a way that won't fight your operating system a year later takes about two minutes of care, which this chapter spends for you.</p>
+
+  <h3>You probably already have one — and shouldn't use it</h3>
+  <p>Every Linux distribution and macOS ships with a Python, because system tooling is written in it. That interpreter belongs to the OS. You can <em>run</em> it, and you'll use it to create virtual environments, but you should not install packages into it (<a class="xref" href="#ch1">Chapter 1</a>). Check what you have:</p>
+  <pre><code>python3 --version          # Linux / macOS
+python --version           # Windows
+python3 -c "import sys; print(sys.executable)"</code></pre>
+
+  <h3>Per-platform install</h3>
+  <table>
+    <tr><th>Platform</th><th>Recommended</th><th>Notes</th></tr>
+    <tr><td><strong>Ubuntu / Debian</strong></td><td><code>sudo apt install python3 python3-venv python3-pip</code></td><td><code>python3-venv</code> is a <em>separate package</em> on Debian-family systems and is the single most common missing piece.</td></tr>
+    <tr><td><strong>Fedora / RHEL</strong></td><td><code>sudo dnf install python3 python3-pip</code></td><td>venv is bundled.</td></tr>
+    <tr><td><strong>macOS</strong></td><td><code>brew install python</code></td><td>Homebrew's Python is kept separate from Apple's, which is what you want.</td></tr>
+    <tr><td><strong>Windows</strong></td><td>python.org installer, or <code>winget install Python.Python.3.12</code></td><td>Tick <strong>"Add python.exe to PATH"</strong> in the installer. Ships with the <code>py</code> launcher.</td></tr>
+  </table>
+
+  <h3>The Windows <code>py</code> launcher</h3>
+  <p>Windows installs a small dispatcher called <code>py</code> that knows about every Python on the machine. It's more reliable than <code>python</code> because it doesn't depend on PATH ordering, and it's how you pick a version explicitly:</p>
+  <pre><code>py --list            # every Python installed on this machine
+py -3.12 --version   # run a specific version
+py -m venv .venv     # create a venv with the default Python</code></pre>
+  <p>Windows also has "App Execution Aliases" &mdash; stub <code>python.exe</code> files that open the Microsoft Store instead of running anything. If typing <code>python</code> opens the Store, turn those off in <em>Settings &rarr; Apps &rarr; Advanced app settings &rarr; App execution aliases</em>, or just use <code>py</code>.</p>
+
+  <h3>Which version should you install?</h3>
+  <p>Unless a project pins you, take <strong>the current stable release minus one minor version</strong>. The newest release is fine for your own code but some compiled scientific packages lag a few months behind, and robotics stacks in particular pin hard: ROS 2 Jazzy expects the Python that ships with Ubuntu 24.04 (<a class="xref" href="#ch10">Chapter 10</a>). Python's versioning is <code>3.MAJOR.MINOR</code>; the number that matters for compatibility is the middle one, because <code>site-packages</code> is version-specific &mdash; which is exactly why upgrading Python appears to "delete" all your packages. It didn't; the new interpreter is simply looking in a different folder.</p>
+
+  <div class="box cmd">
+    <span class="h">Try it — take inventory</span>
+    <pre><code>python3 --version
+python3 -c "import sys; print(sys.executable)"
+python3 -c "import sys; print(sys.prefix)"
+python3 -m venv --help | head -3      # confirms venv is available
+
+# Linux/macOS: find every python the shell can see
+type -a python python3 2>/dev/null
+
+# Windows PowerShell:
+# py --list
+# Get-Command python -All</code></pre>
+    If <code>python3 -m venv --help</code> errors on Ubuntu, install <code>python3-venv</code>. That one package is behind a remarkable share of "venv doesn't work" reports.
+  </div>
+
+  <h2 class="chap" id="ch3">Which Python Am I Running? <span class="n">— Chapter 3</span></h2>
+  <p class="intro">This is the diagnostic chapter, and it's the highest-value five minutes in the book. Two commands answer nearly every environment question you will ever have.</p>
+
+  <h3>The two commands</h3>
+  <pre><code># 1. Which executable will the shell run?
+which python          # Linux / macOS  (use 'where python' or 'Get-Command python' on Windows)
+
+# 2. Which interpreter is actually running, and where does it look for packages?
+python -c "import sys; print(sys.executable); print(sys.prefix)"</code></pre>
+  <p><code>sys.executable</code> is the full path of the running interpreter and <code>sys.prefix</code> is the root of its environment. If <code>sys.prefix</code> points inside your project's <code>.venv</code>, you're in the venv. If it points at <code>/usr</code>, you are not, whatever your prompt claims.</p>
+
+  <h3>Where does it search for imports?</h3>
+  <p>When you <code>import numpy</code>, Python walks a list of directories in order and takes the first hit. That list is <code>sys.path</code>:</p>
+  <pre><code>python -c "import sys; print('\n'.join(sys.path))"
+
+# Where did a specific package actually come from?
+python -c "import numpy; print(numpy.__file__)"
+
+# What does pip think it's managing?
+python -m pip --version        # prints pip's path AND its python — both, in one line</code></pre>
+  <p>That last one is quietly the best diagnostic in Python. Its output looks like <code>pip 24.0 from /home/you/proj/.venv/lib/python3.12/site-packages/pip (python 3.12)</code> &mdash; naming the environment pip will install into. If that path isn't the one you expected, you've found your bug before you started looking.</p>
+
+  <h3>The first entry on sys.path is not what you think</h3>
+  <p>Python puts <em>the directory of the script you ran</em> (or the current directory, for an interactive session) at the front of <code>sys.path</code>. So a file named <code>random.py</code> or <code>email.py</code> in your project directory will shadow the standard-library module of the same name, and the resulting errors are deeply confusing &mdash; something inside a library you didn't write suddenly fails to import. If a stdlib import breaks for no reason, look for a file in your folder with that name (and delete the matching <code>__pycache__</code> entry).</p>
+
+  <div class="box cmd">
+    <span class="h">Try it — see a mismatch on purpose</span>
+    <pre><code>cd /tmp &amp;&amp; mkdir -p envdemo &amp;&amp; cd envdemo
+python3 -m venv .venv
+
+# Before activating:
+which python3
+python3 -c "import sys; print(sys.prefix)"
+
+# After activating:
+source .venv/bin/activate           # Windows: .venv\Scripts\activate
+which python
+python -c "import sys; print(sys.prefix)"
+python -m pip --version
+
+deactivate                          # and back out again</code></pre>
+    Watch <code>sys.prefix</code> change from <code>/usr</code> to your <code>.venv</code> and back. That flip is the entire mechanism, and seeing it once beats reading about it three times.
+  </div>
+
+  <div class="box field">
+    <span class="h">From the field — trust the interpreter, not the prompt</span>
+    A decorated shell prompt showing <code>(.venv)</code> is a <em>string that activation set</em>, not a live readout of reality. It can be stale &mdash; you deleted the venv folder but the prompt still says it's there; you activated in one terminal tab and are typing in another; a tool re-execs Python with a different interpreter under the hood. The prompt is a hint. <code>sys.executable</code> is the truth, because it is the running process reporting on itself. When a colleague says "but it's activated, look" and points at their prompt, the productive next move is always the same: ask them to run <code>python -m pip --version</code>. Roughly half the time that single line ends the discussion, because it shows pip cheerfully managing a completely different environment from the one the prompt advertises.
+  </div>
+
+  <h2 class="part-divider" id="partII">Part II — Isolation</h2>
+
+  <h2 class="chap" id="ch4">Why Virtual Environments <span class="n">— Chapter 4</span></h2>
+  <p class="intro">The case for venvs in one sentence: two projects will eventually need two different versions of the same library, and without isolation only one of them can win.</p>
+
+  <h3>The conflict, made concrete</h3>
+  <p>You have a robotics project pinned to an older <code>numpy</code> because a vendor SDK compiled against it, and a data-analysis project that wants the newest one for a feature you need. Both install into the same <code>site-packages</code>. Installing for one silently breaks the other, and you discover it days later in an unrelated traceback. There is no clever fix at this level &mdash; one directory can only hold one version of a package. The only real answer is more directories, which is what a virtual environment is.</p>
+
+  <h3>What you get</h3>
+  <ul>
+    <li><strong>Independence</strong> &mdash; each project pins whatever versions it needs, and upgrading one can't touch another.</li>
+    <li><strong>A safe system Python</strong> &mdash; your OS keeps working because you never wrote into its package directory.</li>
+    <li><strong>Reproducibility</strong> &mdash; the environment can be described in a file (<a class="xref" href="#ch7">Chapter 7</a>) and rebuilt identically by a teammate, a grader, or a CI runner.</li>
+    <li><strong>A trivial undo</strong> &mdash; when an environment gets into a state you can't explain, delete the folder and rebuild it in thirty seconds. This is genuinely liberating and worth doing sooner than you'd think.</li>
+    <li><strong>Honesty about dependencies</strong> &mdash; a fresh venv tells you immediately when your project depends on something you forgot to declare, because the import fails.</li>
+  </ul>
+
+  <h3>The cost</h3>
+  <p>Being fair about the downsides: a venv is a real folder using real disk space (tens of MB, more with something like PyTorch), you have to remember to activate it, and editors need to be told which one to use. In exchange you never again debug a version conflict. It is not a close trade, and the friction disappears within a week of habit.</p>
+
+  <div class="box tip">
+    <span class="h">The convention worth adopting</span>
+    Name it <code>.venv</code>, put it in the project root, and add it to <code>.gitignore</code>. The leading dot hides it from casual listings, <code>.venv</code> is what VS Code and PyCharm auto-detect (<a class="xref" href="VS_Code_Field_Guide.html#ch5">VS Code guide</a>), and it's the near-universal convention so teammates know what it is on sight. <strong>Never commit it to Git</strong> &mdash; it contains platform-specific compiled binaries that are useless on anyone else's machine, and it will bloat your repository enormously. You commit the <em>recipe</em> (<code>requirements.txt</code>), not the <em>cake</em>. See the <a class="xref" href="Git_GitHub_Field_Guide.html#ch17">Git guide on .gitignore</a>.
+  </div>
+
+  <h2 class="chap" id="ch5">venv, Start to Finish <span class="n">— Chapter 5</span></h2>
+  <p class="intro">The whole workflow, which is four commands. Learn these and you have the skill this book exists to teach.</p>
+
+  <h3>Create, activate, install, leave</h3>
+  <pre><code># 1. Create — makes a .venv folder in the current directory
+python3 -m venv .venv
+
+# 2. Activate — puts .venv/bin at the front of PATH
+source .venv/bin/activate          # Linux / macOS (bash, zsh)
+# .venv\Scripts\activate           # Windows PowerShell / cmd
+
+# 3. Work — python and pip now mean the venv's copies
+python -m pip install requests
+python myscript.py
+
+# 4. Leave
+deactivate</code></pre>
+  <p>Note <code>python3 -m venv</code>, not a <code>venv</code> command &mdash; venv is a stdlib <em>module</em>, and the <code>-m</code> form means "the venv module belonging to <em>this</em> interpreter", which is how you control which Python version the new environment gets.</p>
+
+  <h3>Activation by shell</h3>
+  <table>
+    <tr><th>Shell</th><th>Command</th></tr>
+    <tr><td>bash / zsh (Linux, macOS)</td><td><code>source .venv/bin/activate</code></td></tr>
+    <tr><td>fish</td><td><code>source .venv/bin/activate.fish</code></td></tr>
+    <tr><td>Windows PowerShell</td><td><code>.venv\Scripts\Activate.ps1</code></td></tr>
+    <tr><td>Windows cmd.exe</td><td><code>.venv\Scripts\activate.bat</code></td></tr>
+    <tr><td>Git Bash on Windows</td><td><code>source .venv/Scripts/activate</code></td></tr>
+  </table>
+  <p>If PowerShell refuses with an execution-policy error, run <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code> once. It's a per-user setting and doesn't require admin rights.</p>
+
+  <h3>Choosing the Python version</h3>
+  <p>The venv is built from whichever interpreter you invoke, and its version is fixed at creation &mdash; there is no upgrading a venv in place. To change versions, delete it and make a new one:</p>
+  <pre><code>python3.11 -m venv .venv        # Linux/macOS: use a specific version
+py -3.11 -m venv .venv          # Windows
+
+rm -rf .venv &amp;&amp; python3.12 -m venv .venv   # "upgrading" = recreating</code></pre>
+
+  <h3>Useful flags</h3>
+  <pre><code>python3 -m venv --upgrade-deps .venv   # start with current pip/setuptools
+python3 -m venv --system-site-packages .venv   # also see the system's packages
+python3 -m venv --prompt robotics .venv        # custom name in the prompt</code></pre>
+  <p><code>--system-site-packages</code> deserves a warning: it makes the venv fall back to the system's packages for anything not installed locally. That defeats most of the isolation you came for, and it makes <code>pip freeze</code> misleading. There is one legitimate common use &mdash; robotics, where you need the system-installed ROS 2 Python packages visible inside your venv (<a class="xref" href="#ch10">Chapter 10</a>) &mdash; but reach for it only when you have that specific problem.</p>
+
+  <div class="box cmd">
+    <span class="h">Try it — the full loop</span>
+    <pre><code>mkdir -p ~/py-practice &amp;&amp; cd ~/py-practice
+python3 -m venv .venv
+source .venv/bin/activate                 # Windows: .venv\Scripts\activate
+
+python -m pip --version                   # confirm it's the venv's pip
+python -m pip install requests
+python -c "import requests; print(requests.__file__)"   # inside .venv — good
+
+python -m pip freeze > requirements.txt
+cat requirements.txt
+
+deactivate
+python -c "import requests"               # ModuleNotFoundError — correct!</code></pre>
+    That final error is the proof that isolation works: outside the venv, the package genuinely isn't there. Keep this folder for <a class="xref" href="#ch12">Chapter 12</a>.
+  </div>
+
+  <div class="box field">
+    <span class="h">From the field — make it reflex, and make it disposable</span>
+    Two habits separate people who find Python pleasant from people who find it maddening. The first: <strong>the venv is the second thing you do in a new project</strong>, right after <code>git init</code> &mdash; not something you retrofit after a conflict forces you to. It costs eight seconds up front and saves hours later. The second, and less obvious: <strong>treat environments as disposable</strong>. Beginners nurse a sick environment for hours, uninstalling and reinstalling packages, trying to reason about how it got into its current state. Professionals delete it. <code>rm -rf .venv &amp;&amp; python3 -m venv .venv &amp;&amp; pip install -r requirements.txt</code> takes under a minute and gives you a state you can actually reason about. The willingness to throw an environment away is what makes environments cheap, and the whole workflow in <a class="xref" href="#ch7">Chapter 7</a> exists to make that rebuild reliable.
+  </div>
+
+  <h2 class="chap" id="ch6">Installing Packages with pip <span class="n">— Chapter 6</span></h2>
+  <p class="intro">pip is Python's package installer. It talks to PyPI, the public index of several hundred thousand packages, and drops what it finds into the active environment's site-packages.</p>
+
+  <h3>The commands you'll use</h3>
+  <pre><code>python -m pip install requests           # latest version
+python -m pip install "requests==2.31.0" # exactly this version
+python -m pip install "requests>=2.28"   # at least this version
+python -m pip install "requests~=2.31.0" # 2.31.x, but not 2.32 (compatible release)
+
+python -m pip uninstall requests
+python -m pip list                       # everything installed here
+python -m pip show requests              # version, location, dependencies
+python -m pip install --upgrade requests</code></pre>
+  <p>Quote your version specifiers. <code>&gt;</code> and <code>&lt;</code> are redirection operators in every shell, so an unquoted <code>pip install requests&gt;=2.28</code> creates a file called <code>=2.28</code> and installs the wrong thing.</p>
+
+  <h3>Where packages come from</h3>
+  <p>By default pip downloads from <strong>PyPI</strong> (pypi.org). Most packages arrive as <strong>wheels</strong> &mdash; pre-built <code>.whl</code> archives, often compiled for your exact platform and Python version. When no matching wheel exists, pip falls back to building from source, which needs a compiler and is where installs get slow and error-prone. A wall of C compiler errors during <code>pip install</code> almost always means "no wheel for your platform/version"; the usual fixes are upgrading pip (wheel support improves), using a slightly older Python (packages lag new releases by months), or installing the system build dependencies.</p>
+
+  <h3>Other install sources</h3>
+  <pre><code>python -m pip install -r requirements.txt        # from a requirements file
+python -m pip install -e .                       # editable: your own project, live
+python -m pip install git+https://github.com/user/repo.git
+python -m pip install ./some/local/package
+python -m pip install --index-url https://my.mirror/simple pkg    # private index</code></pre>
+  <p><code>pip install -e .</code> ("editable install") is worth knowing early: it installs your own project so it's importable from anywhere, but as a <em>link</em> back to your source, so edits take effect without reinstalling. It's the standard way to work on a package you're also using.</p>
+
+  <div class="box warn">
+    <span class="h">Two real hazards</span>
+    <strong>Never <code>sudo pip install</code>.</strong> It writes into the OS's package directory as root, and on Linux it can break system tools written in Python. If a tutorial tells you to, the tutorial is old. <strong>And check names before you install.</strong> Anyone can publish to PyPI, and typosquatting is an active problem: <code>python-nmap</code> vs <code>nmap</code>, <code>beautifulsoup4</code> (correct) vs <code>beautifulsoup</code> (not). Packages run arbitrary code at install time, so a typo can mean running someone else's script as you. Copy names from official docs rather than typing from memory, and glance at the download count and last-release date on pypi.org for anything unfamiliar.
+  </div>
+
+  <h3>The dependency resolver, and why it sometimes stalls</h3>
+  <p>Packages depend on other packages, which have their own version constraints, and pip has to find a set that satisfies everything at once. Usually this is instant. Occasionally &mdash; especially with large scientific or ML stacks &mdash; you'll watch it download the same package a dozen times while it backtracks through the solution space. It's working, not hung. You can help it enormously by pinning the packages you actually care about (<code>numpy==1.26.4</code> rather than leaving it open), which collapses the search. If it truly won't converge, <code>uv</code> (<a class="xref" href="#ch8">Chapter 8</a>) solves the same problem dramatically faster.</p>
+
+  <h2 class="chap" id="ch7">requirements.txt <span class="n">— Chapter 7</span></h2>
+  <p class="intro">An environment nobody else can rebuild isn't reproducible, it's a liability. A requirements file is the recipe that turns your working setup into something a teammate, a grader, or a server can recreate exactly.</p>
+
+  <h3>Producing and consuming one</h3>
+  <pre><code>python -m pip freeze > requirements.txt      # capture the current environment
+python -m pip install -r requirements.txt    # rebuild it somewhere else</code></pre>
+  <p><code>pip freeze</code> writes every installed package at its exact version, one per line. Commit that file to Git; never commit the <code>.venv</code> itself (<a class="xref" href="#ch4">Chapter 4</a>).</p>
+
+  <h3>Pinned vs. loose — the real tradeoff</h3>
+  <p>There are two philosophies and they suit different files:</p>
+  <table>
+    <tr><th></th><th>Pinned <code>==</code></th><th>Loose <code>&gt;=</code> / <code>~=</code></th></tr>
+    <tr><td>Example</td><td><code>numpy==1.26.4</code></td><td><code>numpy&gt;=1.26</code></td></tr>
+    <tr><td>Reproducible?</td><td>Exactly &mdash; same bytes every time</td><td>No &mdash; you get whatever's current today</td></tr>
+    <tr><td>Gets security fixes?</td><td>Only when you bump it deliberately</td><td>Automatically on reinstall</td></tr>
+    <tr><td>Best for</td><td>Applications, deployments, coursework, anything reproducible</td><td>Libraries other people install alongside their own deps</td></tr>
+  </table>
+  <p>The mature pattern separates the two concerns: keep a short hand-written file of your <em>direct</em> dependencies with loose bounds, and generate a fully-pinned lock file from it for actual installs. That way you know which four packages you chose and which sixty came along for the ride:</p>
+  <pre><code># requirements.in — what you actually chose, hand-written
+numpy>=1.26
+requests
+pyserial
+
+# then generate the pinned lock file (pip-tools, or uv):
+pip-compile requirements.in -o requirements.txt
+# uv equivalent:  uv pip compile requirements.in -o requirements.txt</code></pre>
+
+  <h3>The portability trap in pip freeze</h3>
+  <p><code>pip freeze</code> records what's installed, including things that don't travel. Two things to strip before committing:</p>
+  <ul>
+    <li><strong>Local paths</strong> &mdash; editable installs appear as <code>-e git+ssh://...</code> or a bare filesystem path that exists only on your machine.</li>
+    <li><strong>Platform-specific packages</strong> &mdash; <code>pywin32</code> in a file a Linux teammate installs will fail outright. Guard them with environment markers: <code>pywin32==306; sys_platform == "win32"</code>.</li>
+  </ul>
+  <p>Also note that <code>pip freeze</code> captures <em>everything</em>, including transitive dependencies you never chose. That's correct for a lock file and noisy for a human-maintained one &mdash; hence the two-file pattern above.</p>
+
+  <div class="box cmd">
+    <span class="h">Try it — prove reproducibility</span>
+    <pre><code>cd ~/py-practice &amp;&amp; source .venv/bin/activate
+python -m pip install requests rich
+python -m pip freeze > requirements.txt
+deactivate
+
+# Now rebuild it from scratch, as a teammate would:
+rm -rf .venv
+python3 -m venv .venv &amp;&amp; source .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m pip list                # same packages, same versions</code></pre>
+    You just deleted your entire environment and got it back in under a minute. That is what "reproducible" buys you, and it's why deleting a broken venv should feel routine rather than drastic.
+  </div>
+
+  <div class="box field">
+    <span class="h">From the field — the README test</span>
+    Here's the standard your projects should meet, and it's the one graders and hiring managers apply without announcing it: <strong>a stranger with your repo and no other context should be able to run your code from three commands in the README</strong> &mdash; create a venv, install requirements, run the thing. If they need to ask you what to install, the project isn't finished. The way to verify this isn't to think hard about it, it's to test it: clone your own repo into a fresh directory, build the environment from your own instructions, and run it. You will find something missing &mdash; almost everyone does the first time, usually a package you installed months ago and forgot was doing work. Doing this once before you submit or share anything is the cheapest quality improvement available to you, and it's the same instinct that makes the installation guides in this series worth writing carefully.
+  </div>
+
+  <h2 class="part-divider" id="partIII">Part III — The Ecosystem</h2>
+
+  <h2 class="chap" id="ch8">conda, uv, Poetry &amp; Friends <span class="n">— Chapter 8</span></h2>
+  <p class="intro">venv and pip are the standard library's answer and they're enough for most work. But you will meet the alternatives in real projects, and each exists because it solves something the standard pair genuinely doesn't.</p>
+
+  <h3>The landscape</h3>
+  <table>
+    <tr><th>Tool</th><th>What it adds</th><th>Reach for it when</th></tr>
+    <tr><td><strong>venv + pip</strong></td><td>Nothing extra — built in, always available</td><td>Default. Start here, stay here unless something pushes you off.</td></tr>
+    <tr><td><strong>uv</strong></td><td>The same workflow, 10&ndash;100&times; faster, with real lock files</td><td>You want a drop-in speedup, or pip's resolver is crawling.</td></tr>
+    <tr><td><strong>conda / mamba</strong></td><td>Manages <em>non-Python</em> deps too (CUDA, compilers, C libraries) and Python itself</td><td>GPU/ML work, or a package that needs system libraries you can't install.</td></tr>
+    <tr><td><strong>Poetry</strong></td><td>Dependency management + packaging + publishing, one file</td><td>You're building a library to publish on PyPI.</td></tr>
+    <tr><td><strong>pipx</strong></td><td>Installs command-line <em>apps</em>, each in its own hidden venv</td><td>Installing tools (<code>black</code>, <code>ruff</code>) you want on PATH globally.</td></tr>
+    <tr><td><strong>pyenv</strong></td><td>Installs and switches between multiple Python <em>versions</em></td><td>You need 3.9 and 3.13 on one machine.</td></tr>
+  </table>
+
+  <h3>uv, briefly</h3>
+  <p>uv is a fast reimplementation of the pip/venv workflow whose commands are deliberately familiar. If pip's resolver is making you wait, it's a nearly free swap:</p>
+  <pre><code>uv venv                          # create .venv
+uv pip install requests          # same syntax as pip, much faster
+uv pip compile requirements.in -o requirements.txt
+uv pip sync requirements.txt     # make the env match the file *exactly*</code></pre>
+  <p><code>uv pip sync</code> has no direct pip equivalent and is genuinely useful: it removes anything not in the file, so the environment matches the lock rather than merely containing it.</p>
+
+  <h3>conda, and why it's a separate world</h3>
+  <p>conda solves a problem pip structurally can't: some scientific packages need compiled C/C++/CUDA libraries that aren't Python at all. conda ships those as part of the package, which is why GPU-accelerated ML setups so often use it. The tradeoff is that it's a parallel universe &mdash; its own package repositories, its own environment format, and its own install of Python.</p>
+  <pre><code>conda create -n myenv python=3.11
+conda activate myenv
+conda install numpy pandas
+conda env export > environment.yml
+conda env create -f environment.yml
+conda deactivate</code></pre>
+  <p>The standard advice for mixing them: install what you can with conda first, then use pip inside the conda environment for anything conda doesn't have. Going back and forth &mdash; conda, then pip, then conda again &mdash; is what produces environments that break in ways nobody can explain, because the two tools don't share a view of what's installed.</p>
+
+  <div class="box tip">
+    <span class="h">Don't tool-shop, especially not while learning</span>
+    Python's packaging ecosystem is genuinely fragmented, and every few years a new tool is confidently declared the future. This generates a lot of anxious blog posts and very little actual value for someone trying to finish a project. <strong>venv + pip + requirements.txt is a complete, permanent, always-available answer</strong> that ships with Python and will work on every machine you ever touch. Learn it thoroughly. Adopt another tool when you hit the specific problem it solves &mdash; conda when a package needs CUDA, uv when the resolver is too slow to bear, pipx when you want a CLI tool globally &mdash; and not because a comparison article was persuasive. The mental model in <a class="xref" href="#ch1">Chapter 1</a> transfers to all of them anyway, which is the real reason to learn the basics properly first.
+  </div>
+
+  <h2 class="chap" id="ch9">Environments &amp; Notebooks <span class="n">— Chapter 9</span></h2>
+  <p class="intro">Jupyter adds a layer of indirection between "the environment" and "the code that runs", and that layer is responsible for a specific, very common flavour of confusion.</p>
+
+  <h3>Where the confusion comes from</h3>
+  <p>A notebook doesn't run in the environment you launched it from. It runs in a <strong>kernel</strong>, which is a separate process with its own interpreter. Launch Jupyter from environment A, select a kernel registered by environment B, and your <code>pip install</code> in A's terminal has no effect on the code in the cell. Hence the eternal beginner experience: install a package, restart everything, still get <code>ModuleNotFoundError</code>.</p>
+
+  <h3>The fix: register the venv as a kernel</h3>
+  <pre><code>source .venv/bin/activate
+python -m pip install ipykernel
+python -m ipykernel install --user --name=myproject --display-name "Python (myproject)"
+
+jupyter kernelspec list      # see every registered kernel and its path
+jupyter kernelspec uninstall myproject   # remove a stale one</code></pre>
+  <p>Then pick "Python (myproject)" from the kernel menu. Kernel specs accumulate &mdash; it's worth running <code>kernelspec list</code> occasionally and deleting ones whose environments you long since deleted, since selecting a kernel whose venv no longer exists produces an unhelpful startup failure.</p>
+
+  <h3>The diagnostic that works every time</h3>
+  <p>Run this <em>in a notebook cell</em>, not in a terminal:</p>
+  <pre><code>import sys
+print(sys.executable)
+print(sys.prefix)</code></pre>
+  <p>That's the interpreter the kernel is actually using. And if you need to install from inside a notebook, use the <code>%pip</code> magic rather than <code>!pip</code> &mdash; <code>%pip</code> targets the running kernel's environment, while <code>!pip</code> shells out and hits whatever pip is on PATH, which is exactly the mismatch you're trying to avoid:</p>
+  <pre><code>%pip install requests      # correct — installs into the kernel's environment
+!pip install requests      # unreliable — may install somewhere else entirely</code></pre>
+  <p>The <span class="xref-offsite" title="Covered in another Field Guide, not published on this site">Jupyter Field Guide</span> covers kernels, magics, and the notebook workflow in much more depth.</p>
+
+  <h2 class="chap" id="ch10">Environments in Robotics <span class="n">— Chapter 10</span></h2>
+  <p class="intro">Robotics is where Python environments get genuinely hard, because the robot's software stack was installed by the system package manager and expects the system Python — while your project wants isolation. Here's how the two coexist.</p>
+
+  <h3>Why ROS 2 fights your venv</h3>
+  <p>ROS 2 installs its Python packages (<code>rclpy</code> and friends) system-wide via apt, built against the exact Python that ships with that Ubuntu release &mdash; ROS 2 Jazzy against Ubuntu 24.04's Python 3.12. When you create a normal isolated venv and activate it, <code>import rclpy</code> fails, because your clean venv correctly can't see the system's packages. The isolation you wanted is precisely the problem.</p>
+  <p>The standard resolution is the one exception to the rule in <a class="xref" href="#ch5">Chapter 5</a>:</p>
+  <pre><code># Source the ROS 2 environment FIRST, then build a venv that can see it
+source /opt/ros/jazzy/setup.bash
+python3 -m venv --system-site-packages .venv
+source .venv/bin/activate
+
+python -c "import rclpy; print(rclpy.__file__)"   # from /opt/ros — correct
+python -m pip install numpy matplotlib             # yours, into .venv</code></pre>
+  <p>Order matters: source ROS first so its environment variables are set, then activate the venv so its <code>bin/</code> wins on PATH. Reverse it and you'll get the system Python back. If a shell is behaving strangely in a ROS project, that ordering is the first thing to check.</p>
+
+  <h3>Vendor SDKs are pinned, and they mean it</h3>
+  <p>Hardware SDKs &mdash; the Unitree SDK among them &mdash; are frequently built against a specific Python version and a specific <code>numpy</code>. Upgrading numpy because an unrelated tutorial suggested it is a genuinely common way to break a working robot setup, and the resulting error usually surfaces far from the cause. Two habits protect you:</p>
+  <ul>
+    <li><strong>Pin the vendor's versions explicitly</strong> in <code>requirements.txt</code> with <code>==</code>, and add a comment saying why, so future-you doesn't "helpfully" bump it.</li>
+    <li><strong>Keep the robot environment separate</strong> from your analysis environment. Plotting and data work has no business sharing a venv with the SDK that drives real actuators.</li>
+  </ul>
+
+  <div class="box warn">
+    <span class="h">The robot is not your laptop</span>
+    On a real robot, an environment mistake has physical consequences: a broken dependency mid-session can leave a limb energized or drop a controller that was holding a pose. Two rules that lab courses learn the hard way. <strong>Never install packages on a robot you can't rebuild</strong> &mdash; if there's no <code>requirements.txt</code> capturing its working state, make one <em>before</em> you touch anything. <strong>And never run <code>pip install</code> while hardware is powered and unattended.</strong> Test the environment change with the robot on a stand or in simulation, confirm imports work, and only then run it live. The <a class="xref" href="https://csusb-jhbc-cyber-ai-robotics.github.io/robotics-field-guides/Robotics_Installation_Field_Guide.html#ch1">Robotics Software Installation Guide</a> walks through building a lab environment from scratch in the right order.
+  </div>
+
+  <div class="box field">
+    <span class="h">From the field — write down what worked</span>
+    Robotics environments are fragile in a way web or data environments usually aren't, because they sit on top of vendor SDKs, kernel modules, and hardware drivers that nobody can reinstall from PyPI. The single most valuable thing you can do the moment a robot setup works &mdash; before you write a line of project code &mdash; is capture it: <code>pip freeze &gt; requirements.txt</code>, note the ROS distro and Ubuntu version, note the SDK version and where it came from, and commit all of it. Teams that do this recover from a wiped machine in an hour. Teams that don't lose days reconstructing a configuration nobody fully remembers, usually right before a demo. The working state of a robot is real, hard-won knowledge, and it lives in exactly one place until you write it down.
+  </div>
+
+  <h2 class="part-divider" id="partIV">Part IV — Practice &amp; Reference</h2>
+
+  <h2 class="chap" id="ch11">Troubleshooting <span class="n">— Chapter 11</span></h2>
+  <p class="intro">The errors you'll actually hit, why they happen, and the fix. Nearly all of them are the mismatch from Chapter 1 in disguise.</p>
+
+  <h3>Before anything else</h3>
+  <pre><code>which python                              # what the shell will run
+python -c "import sys; print(sys.executable, sys.prefix)"
+python -m pip --version                   # which env pip manages</code></pre>
+  <p>If those three don't agree with each other and with your intent, you've found the problem and the rest of this chapter is unnecessary.</p>
+
+  <h3>The table</h3>
+  <table>
+    <tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr>
+    <tr><td><code>ModuleNotFoundError</code> after a successful install</td><td>pip and python are different environments</td><td>Always <code>python -m pip install</code>; check <code>pip --version</code></td></tr>
+    <tr><td><code>error: externally-managed-environment</code></td><td>Installing into the OS Python (correctly blocked)</td><td>Make a venv. Don't use <code>--break-system-packages</code>.</td></tr>
+    <tr><td><code>No module named venv</code> (Ubuntu)</td><td><code>python3-venv</code> isn't installed</td><td><code>sudo apt install python3-venv</code></td></tr>
+    <tr><td>PowerShell: "running scripts is disabled"</td><td>Execution policy blocks the activate script</td><td><code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code></td></tr>
+    <tr><td><code>command not found: pip</code> inside a venv</td><td>Venv made without pip, or PATH is stale</td><td><code>python -m ensurepip --upgrade</code></td></tr>
+    <tr><td>Prompt shows <code>(.venv)</code> but wrong packages</td><td>Venv was moved, renamed, or deleted</td><td>Venvs hardcode absolute paths — recreate it</td></tr>
+    <tr><td>Works in terminal, not in VS Code</td><td>Editor selected a different interpreter</td><td><em>Python: Select Interpreter</em> — <a class="xref" href="VS_Code_Field_Guide.html#ch5">VS Code guide</a></td></tr>
+    <tr><td>Notebook can't import an installed package</td><td>Kernel belongs to another environment</td><td>Register the venv as a kernel (<a class="xref" href="#ch9">Ch 9</a>); use <code>%pip</code></td></tr>
+    <tr><td>Wall of C compiler errors on install</td><td>No prebuilt wheel for your platform/version</td><td>Upgrade pip; try a slightly older Python; install build deps</td></tr>
+    <tr><td>pip downloads the same package repeatedly</td><td>Resolver backtracking, not hung</td><td>Pin key versions; or use <code>uv</code></td></tr>
+    <tr><td>Stdlib import fails inexplicably</td><td>A local file shadows it (<code>random.py</code>, <code>email.py</code>)</td><td>Rename the file, delete <code>__pycache__</code></td></tr>
+    <tr><td><code>import rclpy</code> fails in a venv</td><td>Plain venv can't see system ROS packages</td><td>Recreate with <code>--system-site-packages</code> (<a class="xref" href="#ch10">Ch 10</a>)</td></tr>
+  </table>
+
+  <h3>The nuclear option, and why it's fine</h3>
+  <pre><code>deactivate 2>/dev/null
+rm -rf .venv
+python3 -m venv .venv &amp;&amp; source .venv/bin/activate
+python -m pip install -r requirements.txt</code></pre>
+  <p>Four commands, under a minute, and you have a known-good state. If you have a <code>requirements.txt</code> this is not a defeat &mdash; it is very often the <em>correct first move</em>, ahead of investigation, because the time spent diagnosing a corrupted environment rarely teaches you anything worth knowing.</p>
+
+  <h2 class="chap" id="ch12">Lab Exercises <span class="n">— Chapter 12</span></h2>
+  <p class="intro">Short, practical, and cumulative. Do them in order in a scratch directory; the point is to make the mechanics automatic and to see isolation actually work.</p>
+
+  <h3>Lab 1 — Prove isolation exists</h3>
+  <ol>
+    <li>Create two directories, <code>projA</code> and <code>projB</code>, each with its own <code>.venv</code>.</li>
+    <li>In A: <code>python -m pip install "requests==2.28.0"</code>. In B: install <code>requests==2.31.0</code>.</li>
+    <li>In each, run <code>python -c "import requests; print(requests.__version__, requests.__file__)"</code>.</li>
+    <li>Confirm the versions differ and each resolves inside its own <code>.venv</code>. <strong>Why can both exist at once?</strong></li>
+  </ol>
+
+  <h3>Lab 2 — Break it deliberately</h3>
+  <ol>
+    <li>Activate <code>projA</code>'s venv, then run <code>deactivate</code> and try importing requests. Explain the error using <code>sys.path</code>.</li>
+    <li>Reactivate and compare <code>which python</code> and <code>which pip</code> before and after. Which directory got prepended?</li>
+    <li>Rename the <code>projA</code> folder and try activating again. It breaks &mdash; find out why (hint: <code>head -1 .venv/bin/pip</code>).</li>
+  </ol>
+
+  <h3>Lab 3 — The reproducibility test</h3>
+  <ol>
+    <li>In a fresh project, install three packages of your choice and write a script that imports all three.</li>
+    <li><code>pip freeze &gt; requirements.txt</code>, then delete <code>.venv</code> entirely.</li>
+    <li>Rebuild from the requirements file and confirm your script still runs.</li>
+    <li>Now hand <code>requirements.txt</code> and your script (no venv) to a classmate. Can they run it without asking you anything? That's the <a class="xref" href="#ch7">README test</a>.</li>
+  </ol>
+
+  <h3>Lab 4 — Shadowing</h3>
+  <ol>
+    <li>In an empty directory, create a file called <code>random.py</code> containing <code>print("hijacked")</code>.</li>
+    <li>In the same directory, run <code>python -c "import random; print(random.randint(1,10))"</code>.</li>
+    <li>Explain what happened using the first entry of <code>sys.path</code> (<a class="xref" href="#ch3">Chapter 3</a>). Then delete the file <em>and</em> <code>__pycache__</code>.</li>
+  </ol>
+
+  <h3>Lab 5 — Notebook kernels</h3>
+  <ol>
+    <li>Create a venv, install <code>ipykernel</code> and <code>rich</code>, and register the kernel with a recognizable display name.</li>
+    <li>Launch Jupyter, select the kernel, and print <code>sys.executable</code> in a cell. Does it match the venv?</li>
+    <li>Switch to a different kernel and print it again. Explain why <code>!pip install</code> would be unreliable here.</li>
+  </ol>
+
+  <h2 class="chap" id="ch13">Glossary <span class="n">— Chapter 13</span></h2>
+  <table>
+    <tr><th>Term</th><th>Meaning</th></tr>
+    <tr><td><strong>Interpreter</strong></td><td>The <code>python</code> executable itself — the program that runs your code.</td></tr>
+    <tr><td><strong>Environment</strong></td><td>An interpreter plus the site-packages directory it reads from.</td></tr>
+    <tr><td><strong>site-packages</strong></td><td>The directory where installed third-party packages live.</td></tr>
+    <tr><td><strong>Virtual environment (venv)</strong></td><td>A self-contained folder holding its own interpreter link and site-packages.</td></tr>
+    <tr><td><strong>Activate</strong></td><td>Prepend a venv's <code>bin/</code> to <code>PATH</code> so its <code>python</code> and <code>pip</code> win.</td></tr>
+    <tr><td><strong>pip</strong></td><td>Python's package installer; fetches from PyPI into the active environment.</td></tr>
+    <tr><td><strong>PyPI</strong></td><td>The Python Package Index — the public repository pip installs from.</td></tr>
+    <tr><td><strong>Wheel (.whl)</strong></td><td>A prebuilt package archive. Fast to install; no compiler needed.</td></tr>
+    <tr><td><strong>sdist</strong></td><td>A source distribution — must be built on your machine, so it needs a toolchain.</td></tr>
+    <tr><td><strong>requirements.txt</strong></td><td>A list of packages and versions that <code>pip install -r</code> can rebuild from.</td></tr>
+    <tr><td><strong>Pinning</strong></td><td>Specifying an exact version (<code>==</code>) for reproducibility.</td></tr>
+    <tr><td><strong>Lock file</strong></td><td>A fully-pinned, machine-generated list of every package including transitive deps.</td></tr>
+    <tr><td><strong>Transitive dependency</strong></td><td>A package you didn't ask for, installed because something you did ask for needs it.</td></tr>
+    <tr><td><strong>Editable install</strong></td><td><code>pip install -e .</code> — links to your source so edits take effect immediately.</td></tr>
+    <tr><td><strong>Kernel</strong></td><td>The separate interpreter process a Jupyter notebook actually executes in.</td></tr>
+    <tr><td><strong>sys.path</strong></td><td>The ordered list of directories Python searches on <code>import</code>.</td></tr>
+    <tr><td><strong>sys.prefix</strong></td><td>The root of the running environment — your fastest "am I in the venv?" check.</td></tr>
+    <tr><td><strong>Environment marker</strong></td><td>A conditional in a requirements file, e.g. <code>; sys_platform == "win32"</code>.</td></tr>
+    <tr><td><strong>Shadowing</strong></td><td>A local file hiding a module of the same name from the standard library.</td></tr>
+  </table>
+
+  <h2 class="chap" id="appA">Command Cheat-Sheet <span class="n">— Appendix A</span></h2>
+
+  <h3>Diagnose</h3>
+  <pre><code>which python                                        # what the shell runs
+python -c "import sys; print(sys.executable)"       # the running interpreter
+python -c "import sys; print(sys.prefix)"           # the environment root
+python -c "import sys; print('\n'.join(sys.path))"  # the import search path
+python -m pip --version                             # which env pip manages
+python -c "import numpy; print(numpy.__file__)"     # where a package came from</code></pre>
+
+  <h3>Create &amp; activate</h3>
+  <pre><code>python3 -m venv .venv                  # create
+source .venv/bin/activate              # activate — Linux / macOS
+.venv\Scripts\activate                 # activate — Windows
+deactivate                             # leave
+rm -rf .venv                           # delete (always safe)
+
+python3.11 -m venv .venv               # pick a version — Linux / macOS
+py -3.11 -m venv .venv                 # pick a version — Windows
+python3 -m venv --system-site-packages .venv    # see system pkgs (ROS)
+python3 -m venv --upgrade-deps .venv            # fresh pip on creation</code></pre>
+
+  <h3>Packages</h3>
+  <pre><code>python -m pip install requests              # latest
+python -m pip install "requests==2.31.0"    # exact — quote it
+python -m pip install "requests>=2.28"      # minimum — quote it
+python -m pip install -r requirements.txt   # from a file
+python -m pip install -e .                  # editable, your own project
+python -m pip install --upgrade pip         # update pip itself
+
+python -m pip list                          # installed here
+python -m pip show requests                 # version, path, dependencies
+python -m pip uninstall requests
+python -m pip freeze > requirements.txt     # capture the environment</code></pre>
+
+  <h3>Notebooks</h3>
+  <pre><code>python -m pip install ipykernel
+python -m ipykernel install --user --name=proj --display-name "Python (proj)"
+jupyter kernelspec list
+jupyter kernelspec uninstall proj
+%pip install requests                       # inside a cell — not !pip</code></pre>
+
+  <h3>ROS 2</h3>
+  <pre><code>source /opt/ros/jazzy/setup.bash                 # ROS first
+python3 -m venv --system-site-packages .venv     # then the venv
+source .venv/bin/activate                        # then activate
+python -c "import rclpy; print(rclpy.__file__)"  # verify</code></pre>
+
+  <h3>The rebuild</h3>
+  <pre><code>deactivate 2>/dev/null; rm -rf .venv
+python3 -m venv .venv &amp;&amp; source .venv/bin/activate
+python -m pip install -r requirements.txt</code></pre>
+
+  <h2 class="chap" id="appB">Which Tool Should I Use? <span class="n">— Appendix B</span></h2>
+  <p class="intro">A decision guide for the question in Chapter 8, reduced to the situations that actually come up.</p>
+  <table>
+    <tr><th>Your situation</th><th>Use</th><th>Because</th></tr>
+    <tr><td>Learning Python; a class project; most work</td><td><code>venv</code> + <code>pip</code></td><td>Built in, universal, nothing to install. The right default.</td></tr>
+    <tr><td>pip's resolver is unbearably slow</td><td><code>uv</code></td><td>Same commands, far faster, real lock files.</td></tr>
+    <tr><td>GPU / deep-learning stack with CUDA</td><td><code>conda</code> or <code>mamba</code></td><td>Ships non-Python binaries pip structurally can't.</td></tr>
+    <tr><td>A package needs system C libraries you can't install</td><td><code>conda</code></td><td>Same reason — it manages more than Python.</td></tr>
+    <tr><td>Publishing a library to PyPI</td><td><code>Poetry</code> or <code>hatch</code></td><td>Handles building and publishing, not just installing.</td></tr>
+    <tr><td>Installing CLI tools (<code>black</code>, <code>ruff</code>)</td><td><code>pipx</code></td><td>Each tool gets its own venv but lands on your PATH.</td></tr>
+    <tr><td>Need several Python versions side by side</td><td><code>pyenv</code></td><td>Manages interpreters; pair it with venv for packages.</td></tr>
+    <tr><td>ROS 2 project</td><td><code>venv --system-site-packages</code></td><td>Only way to see apt-installed <code>rclpy</code> from a venv.</td></tr>
+    <tr><td>Deploying to a server or container</td><td><code>pip install -r</code> a pinned file</td><td>Reproducible, no extra tooling on the target.</td></tr>
+  </table>
+
+  <div class="box field">
+    <span class="h">From the field — the short version of this whole book</span>
+    If you retain one page, make it this one. <strong>One project, one venv, named <code>.venv</code>, gitignored, described by a <code>requirements.txt</code> you actually commit.</strong> Create it before you write code, not after something breaks. Use <code>python -m pip install</code> rather than bare <code>pip</code>, so the installer and the interpreter can never disagree. When something imports wrong, check <code>sys.executable</code> before you check anything else. And when an environment gets weird, delete it &mdash; you have the recipe, the rebuild takes a minute, and hours spent nursing a corrupted environment teach you nothing you'll want to remember. That's the entire discipline. It's not sophisticated, and it eliminates the overwhelming majority of the problems that make people describe Python packaging as a nightmare.
+  </div>
+
+  <hr>
+  <div class="box field">
+    <span class="h">A closing word</span>
+    Python's environment story has a bad reputation, and some of it is earned &mdash; the ecosystem is fragmented and the error messages are rarely as helpful as they could be. But the underlying model is genuinely simple, and it's the same model under every tool in <a class="xref" href="#ch8">Chapter 8</a>: an interpreter, a folder of packages, and a PATH that decides which pair you get. Everything else is convenience on top. Once you can picture that &mdash; and once checking <code>sys.executable</code> is reflex rather than something you remember to do &mdash; the errors stop feeling arbitrary and start reading like plain statements of fact about which folder something is in. That shift, from mystery to mechanism, is what this book was for. Now go make a venv.
+  </div>
+
+  <a href="#" class="backtop" id="backtop" title="Back to top">&uarr;</a>
+
+</div>
+</div>
+
+<div id="palette" role="dialog" aria-modal="true">
+  <div id="palbox">
+    <input id="palinput" type="text" placeholder="Search the whole book&hellip;" autocomplete="off" spellcheck="false">
+    <div id="palresults"></div>
+    <div id="palhint"><span><b>&uarr;&darr;</b> navigate</span><span><b>&crarr;</b> open</span><span><b>esc</b> close</span></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var root=document.documentElement, body=document.body;
+  var LS={get:function(k,d){try{var v=localStorage.getItem(k);return v===null?d:v;}catch(e){return d;}},set:function(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
+
+  var themeBtn=document.getElementById('themebtn');
+  function applyTheme(t){root.setAttribute('data-theme',t);themeBtn.innerHTML=(t==='light')?'&#9728;':'&#9789;';LS.set('pyenv-theme',t);}
+  applyTheme(LS.get('pyenv-theme','dark'));
+  themeBtn.addEventListener('click',function(){applyTheme(root.getAttribute('data-theme')==='light'?'dark':'light');});
+
+  var fs=parseInt(LS.get('pyenv-fs','16'),10);
+  function applyFs(){fs=Math.max(13,Math.min(21,fs));root.style.setProperty('--fs',fs+'px');LS.set('pyenv-fs',fs);}
+  applyFs();
+  document.getElementById('fsup').addEventListener('click',function(){fs+=1;applyFs();});
+  document.getElementById('fsdown').addEventListener('click',function(){fs-=1;applyFs();});
+
+  var collapsed={};try{collapsed=JSON.parse(LS.get('pyenv-collapsed','{}'))||{};}catch(e){collapsed={};}
+  [].forEach.call(document.querySelectorAll('.navpart'),function(part){
+    var btn=part.querySelector('button.part');var key=btn.textContent.trim();
+    if(collapsed[key])part.classList.add('collapsed');
+    btn.addEventListener('click',function(){part.classList.toggle('collapsed');collapsed[key]=part.classList.contains('collapsed');LS.set('pyenv-collapsed',JSON.stringify(collapsed));});
+  });
+
+  var used={};document.querySelectorAll('[id]').forEach(function(el){used[el.id]=true;});
+  function slug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,50);}
+  document.querySelectorAll('.content h3, .content h4').forEach(function(h){if(h.id)return;var base=slug(h.textContent)||'s',id=base,n=2;while(used[id]){id=base+'-'+(n++);}used[id]=true;h.id=id;});
+  document.querySelectorAll('.content h2.chap, .content h3').forEach(function(h){if(!h.id)return;var a=document.createElement('a');a.className='anchor';a.href='#'+h.id;a.textContent='#';a.title='Link to this section';h.appendChild(a);});
+
+  var content=document.querySelector('.content');
+  var heads=[].slice.call(content.querySelectorAll('h2.chap'));
+  function chapTitle(h){var c=h.cloneNode(true);var n=c.querySelector('.n');if(n)n.remove();var a=c.querySelector('.anchor');if(a)a.remove();return c.textContent.trim();}
+  heads.forEach(function(h){var words=0,el=h.nextElementSibling;while(el&&!(el.matches&&el.matches('h2.chap'))){words+=(el.textContent||'').split(/\s+/).length;el=el.nextElementSibling;}
+    if(words>40){var mins=Math.max(1,Math.round(words/200));var rt=document.createElement('div');rt.className='readtime';rt.innerHTML='&#128338; ~'+mins+' min read &middot; '+words.toLocaleString()+' words';if(h.nextSibling)h.parentNode.insertBefore(rt,h.nextSibling);else h.parentNode.appendChild(rt);}});
+
+  function pagerCell(h,dir){if(!h)return '<span class="empty"></span>';return '<a class="'+dir+'" href="#'+h.id+'"><div class="dir">'+(dir==='prev'?'← Previous':'Next →')+'</div><div class="ttl">'+chapTitle(h)+'</div></a>';}
+  heads.forEach(function(h,i){var pager=document.createElement('div');pager.className='pager';pager.innerHTML=pagerCell(heads[i-1],'prev')+pagerCell(heads[i+1],'next');
+    var next=heads[i+1];if(next){var target=next;if(target.previousElementSibling&&target.previousElementSibling.matches&&target.previousElementSibling.matches('h2.part-divider'))target=target.previousElementSibling;content.insertBefore(pager,target);}else{var bt=document.getElementById('backtop');var hr=content.querySelector('hr');content.insertBefore(pager,hr||bt);}});
+
+  document.querySelectorAll('.content pre').forEach(function(pre){var wrap=document.createElement('div');wrap.className='codewrap';pre.parentNode.insertBefore(wrap,pre);wrap.appendChild(pre);var btn=document.createElement('button');btn.className='copybtn';btn.textContent='Copy';wrap.appendChild(btn);
+    btn.addEventListener('click',function(){var txt=pre.innerText;var done=function(){btn.textContent='Copied!';btn.classList.add('done');setTimeout(function(){btn.textContent='Copy';btn.classList.remove('done');},1400);};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,function(){fallback(txt);done();});}else{fallback(txt);done();}});});
+  function fallback(txt){var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}ta.remove();}
+
+  var navlinks=[].slice.call(document.querySelectorAll('a.navlink'));
+  var readSet={};try{readSet=JSON.parse(LS.get('pyenv-read','{}'))||{};}catch(e){readSet={};}
+  var readFill=document.getElementById('readfill'),readLabel=document.getElementById('readlabel');
+  function refreshProgress(){var total=navlinks.length,done=0;navlinks.forEach(function(a){if(readSet[a.getAttribute('href')]){a.classList.add('read');done++;}else a.classList.remove('read');});readFill.style.width=(total?Math.round(done/total*100):0)+'%';readLabel.textContent=done+' of '+total+' read';}
+  navlinks.forEach(function(a){var chk=a.querySelector('.check');if(chk)chk.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var h=a.getAttribute('href');if(readSet[h])delete readSet[h];else readSet[h]=1;LS.set('pyenv-read',JSON.stringify(readSet));refreshProgress();});});
+  refreshProgress();
+
+  var navByHref={};navlinks.forEach(function(a){navByHref[a.getAttribute('href')]=a;});
+  var spyTargets=navlinks.map(function(a){var el=document.querySelector(a.getAttribute('href'));return el?{a:a,el:el,id:a.getAttribute('href')}:null;}).filter(Boolean);
+  var crumb=document.getElementById('crumb'),prog=document.getElementById('progress'),backtop=document.getElementById('backtop');var curId=null;
+  function onScroll(){var sc=window.pageYOffset,h=document.documentElement.scrollHeight-window.innerHeight;prog.style.width=(h>0?(sc/h*100):0)+'%';backtop.classList.toggle('show',sc>500);
+    var cur=spyTargets[0];for(var i=0;i<spyTargets.length;i++){if(spyTargets[i].el.getBoundingClientRect().top<=120)cur=spyTargets[i];}
+    if(cur&&cur.id!==curId){curId=cur.id;navlinks.forEach(function(a){a.classList.remove('active');});cur.a.classList.add('active');crumb.innerHTML='<b>'+cur.a.textContent.trim()+'</b>';}}
+  document.addEventListener('scroll',onScroll,{passive:true});window.addEventListener('resize',onScroll);window.addEventListener('load',onScroll);onScroll();
+
+  var navsearch=document.getElementById('navsearch');
+  navsearch.addEventListener('input',function(){var q=navsearch.value.trim().toLowerCase();navlinks.forEach(function(a){var hit=a.textContent.toLowerCase().indexOf(q)>=0;a.classList.toggle('hidden',q.length>0&&!hit);});if(q.length>0)document.querySelectorAll('.navpart').forEach(function(p){p.classList.remove('collapsed');});});
+
+  var index=[];
+  document.querySelectorAll('.content h2.chap').forEach(function(h){index.push({id:h.id,text:chapTitle(h),lvl:'Chapter',chap:chapTitle(h)});});
+  (function(){var curChap='';document.querySelectorAll('.content h2.chap, .content h3, .content h4').forEach(function(h){if(h.matches('h2.chap')){curChap=chapTitle(h);return;}var t=h.cloneNode(true);var a=t.querySelector('.anchor');if(a)a.remove();index.push({id:h.id,text:t.textContent.trim(),lvl:(h.tagName==='H3'?'Section':'Topic'),chap:curChap});});})();
+  var palette=document.getElementById('palette'),palinput=document.getElementById('palinput'),palresults=document.getElementById('palresults');var palSel=0,palShown=[];
+  function renderPal(q){q=q.trim().toLowerCase();palShown=!q?index.slice(0,40):index.filter(function(it){return it.text.toLowerCase().indexOf(q)>=0||it.chap.toLowerCase().indexOf(q)>=0;}).slice(0,60);palSel=0;
+    palresults.innerHTML=palShown.length?palShown.map(function(it,i){var ctx=(it.lvl!=='Chapter'&&it.chap)?'<span class="ctx">'+it.chap+'</span>':'';return '<div class="palitem'+(i===0?' sel':'')+'" data-id="'+it.id+'"><span class="lvl">'+it.lvl+'</span><span class="txt">'+it.text+'</span>'+ctx+'</div>';}).join(''):'<div class="palitem"><span class="txt" style="color:var(--faint)">No matches</span></div>';}
+  function openPal(){palette.classList.add('open');palinput.value='';renderPal('');palinput.focus();}
+  function closePal(){palette.classList.remove('open');}
+  function goPal(){var it=palShown[palSel];if(it){closePal();location.hash='#'+it.id;}}
+  document.getElementById('palbtn').addEventListener('click',openPal);
+  palinput.addEventListener('input',function(){renderPal(palinput.value);});
+  palresults.addEventListener('click',function(e){var d=e.target.closest('.palitem');if(d&&d.dataset.id){closePal();location.hash='#'+d.dataset.id;}});
+  palette.addEventListener('click',function(e){if(e.target===palette)closePal();});
+  palinput.addEventListener('keydown',function(e){var items=palresults.querySelectorAll('.palitem');
+    if(e.key==='ArrowDown'){e.preventDefault();palSel=Math.min(palShown.length-1,palSel+1);}else if(e.key==='ArrowUp'){e.preventDefault();palSel=Math.max(0,palSel-1);}else if(e.key==='Enter'){e.preventDefault();goPal();return;}else if(e.key==='Escape'){closePal();return;}else return;
+    items.forEach(function(d,i){d.classList.toggle('sel',i===palSel);});if(items[palSel])items[palSel].scrollIntoView({block:'nearest'});});
+
+  var scrim=document.getElementById('scrim');
+  function closeNav(){body.classList.remove('navopen');}
+  document.getElementById('hamburger').addEventListener('click',function(){body.classList.toggle('navopen');});
+  scrim.addEventListener('click',closeNav);
+  navlinks.forEach(function(a){a.addEventListener('click',function(){if(window.innerWidth<=980)closeNav();});});
+
+  document.addEventListener('keydown',function(e){var tag=(e.target.tagName||'').toLowerCase(),typing=(tag==='input'||tag==='textarea');
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openPal();return;}
+    if(typing)return;
+    if(e.key==='/'){e.preventDefault();openPal();return;}
+    if(e.key==='ArrowRight'||e.key==='ArrowLeft'){var idx=spyTargets.findIndex(function(s){return s.id==='#'+curId;});if(idx<0)idx=0;var go=e.key==='ArrowRight'?spyTargets[idx+1]:spyTargets[idx-1];if(go){e.preventDefault();location.hash=go.id;}}
+    else if(e.key.toLowerCase()==='t'){window.scrollTo({top:0,behavior:'smooth'});}
+    else if(e.key.toLowerCase()==='r'){var a=navByHref['#'+curId];if(a){var h=a.getAttribute('href');if(readSet[h])delete readSet[h];else readSet[h]=1;LS.set('pyenv-read',JSON.stringify(readSet));refreshProgress();}}
+    else if(e.key.toLowerCase()==='b'){body.classList.toggle('navopen');}});
+})();
+</script>
+
+</body>
+</html>

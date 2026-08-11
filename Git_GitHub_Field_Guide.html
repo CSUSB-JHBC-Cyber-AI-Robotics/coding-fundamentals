@@ -1,0 +1,1851 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Git &amp; GitHub Field Guide</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --panel3:#222b3a;
+    --ink:#c9d1d9; --dim:#8b949e; --faint:#6e7681;
+    --cyan:#39d0d8; --orange:#ff9e44; --green:#56d364; --red:#f47272;
+    --amber:#e3b341; --purple:#bc8cff; --blue:#6cb6ff; --pink:#f778ba;
+    --line:#30363d; --code:#0b1622; --sel:#1f6feb44;
+    --shadow:0 8px 30px rgba(0,0,0,.45);
+    --fs:16px; --navw:316px; --topbarh:50px;
+    --accent:var(--orange);
+  }
+  html[data-theme="light"]{
+    --bg:#f6f8fa; --panel:#ffffff; --panel2:#eef1f5; --panel3:#e4e9f0;
+    --ink:#1f2328; --dim:#57606a; --faint:#818b98;
+    --cyan:#0b8c97; --orange:#bc5d18; --green:#1a7f37; --red:#cf222e;
+    --amber:#9a6700; --purple:#8250df; --blue:#0969da; --pink:#bf3989;
+    --line:#d0d7de; --code:#f3f5f8; --sel:#0969da22;
+    --shadow:0 8px 30px rgba(140,149,159,.25);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  ::selection{background:var(--sel)}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;line-height:1.65;font-size:var(--fs);transition:background .25s ease,color .25s ease}
+  a{color:var(--accent)}
+  /* ---- commit-graph theme backdrop ---- */
+  #fx{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.13;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg fill='none' stroke='%23ff9e44' stroke-width='1.5' opacity='0.5'%3E%3Cpath d='M34 0 V120'/%3E%3Cpath d='M34 30 C34 44 78 42 78 56 C78 70 34 68 34 82'/%3E%3C/g%3E%3Cg fill='%23ff9e44' opacity='0.65'%3E%3Ccircle cx='34' cy='16' r='3'/%3E%3Ccircle cx='34' cy='100' r='3'/%3E%3Ccircle cx='78' cy='56' r='3'/%3E%3C/g%3E%3C/svg%3E");background-size:120px 120px;background-repeat:repeat}
+  html[data-theme="light"] #fx{opacity:.07}
+  /* ---- engine ---- */
+  #progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--orange),var(--red));z-index:60;transition:width .1s linear}
+  #topbar{position:fixed;top:0;left:var(--navw);right:0;height:var(--topbarh);z-index:45;display:flex;align-items:center;gap:10px;padding:0 20px;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  #topbar .crumb{font-size:13px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+  #topbar .crumb b{color:var(--ink)}
+  #topbar button,#topbar .kbtn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);height:32px;border-radius:7px;cursor:pointer;font-family:inherit;font-size:13px;padding:0 10px;display:inline-flex;align-items:center;gap:6px;transition:all .15s ease}
+  #topbar button:hover,#topbar .kbtn:hover{border-color:var(--accent);color:var(--accent)}
+  #topbar .icobtn{width:32px;padding:0;justify-content:center;font-size:15px}
+  #hamburger{display:none}
+  .kbtn .k{font-size:11px;color:var(--faint);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+  #nav{position:fixed;top:0;left:0;width:var(--navw);height:100vh;overflow-y:auto;background:color-mix(in srgb,var(--panel) 92%,transparent);border-right:1px solid var(--line);padding:16px 12px 80px;z-index:50;backdrop-filter:blur(6px);scrollbar-width:thin;scrollbar-color:var(--line) transparent;transition:transform .25s ease}
+  #nav::-webkit-scrollbar{width:9px}#nav::-webkit-scrollbar-thumb{background:var(--line);border-radius:5px}
+  #nav .brand{display:flex;align-items:center;gap:9px;margin-bottom:2px}
+  #nav .brand .logo{width:28px;height:28px;flex:none}
+  #nav h1{font-size:14px;color:var(--accent);margin:0;letter-spacing:.3px}
+  #nav .sub{font-size:11px;color:var(--dim);margin:2px 0 10px 37px}
+  #navsearch{width:100%;background:var(--code);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px 10px 8px 30px;font-size:12.5px;font-family:inherit;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238b949e' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:9px center}
+  #navsearch:focus{outline:none;border-color:var(--accent)}
+  #readbar{margin:10px 2px 6px;font-size:11px;color:var(--dim)}
+  #readbar .track{height:5px;background:var(--panel3);border-radius:3px;margin-top:4px;overflow:hidden}
+  #readbar .fill{height:100%;width:0;background:linear-gradient(90deg,var(--orange),var(--red));transition:width .3s ease}
+  .navpart{margin-top:8px}
+  button.part{width:100%;text-align:left;background:none;border:none;cursor:pointer;font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--purple);font-weight:700;padding:8px 6px 4px;display:flex;align-items:center;justify-content:space-between;font-family:inherit}
+  button.part:hover{color:var(--accent)}
+  button.part .caret{transition:transform .2s ease;font-size:9px;color:var(--faint)}
+  .navpart.collapsed button.part .caret{transform:rotate(-90deg)}
+  .navlinks{overflow:hidden;transition:max-height .25s ease;max-height:2400px}
+  .navpart.collapsed .navlinks{max-height:0}
+  a.navlink{display:flex;align-items:center;gap:7px;color:var(--dim);text-decoration:none;font-size:12.5px;padding:4px 8px;border-radius:6px;border-left:2px solid transparent;line-height:1.4;transition:all .12s ease}
+  a.navlink:hover{color:var(--ink);background:var(--panel2)}
+  a.navlink.active{color:var(--accent);border-left-color:var(--accent);background:var(--panel2)}
+  a.navlink.hidden{display:none}
+  a.navlink .check{width:14px;height:14px;flex:none;border:1.5px solid var(--line);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:transparent;transition:all .15s ease}
+  a.navlink.read .check{background:var(--green);border-color:var(--green);color:#04210c}
+  a.navlink.read{color:var(--faint)}
+  #scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:46;opacity:0;pointer-events:none;transition:opacity .25s}
+  body.navopen #scrim{opacity:1;pointer-events:auto}
+  #wrap{position:relative;z-index:1;margin-left:var(--navw);padding:calc(var(--topbarh) + 4px) 40px 0}
+  .content{max-width:880px;margin:0 auto;padding:30px 0 140px}
+  h2.chap{font-size:29px;color:var(--accent);border-bottom:2px solid var(--accent);padding-bottom:8px;margin:64px 0 4px;scroll-margin-top:64px;position:relative}
+  h2.chap .n{color:var(--faint);font-size:17px;font-weight:400}
+  .readtime{font-size:12px;color:var(--faint);margin:0 0 14px;display:flex;align-items:center;gap:6px}
+  h2.part-divider{font-size:13px;text-transform:uppercase;letter-spacing:3px;color:var(--purple);margin:80px 0 0;padding:0;border:none;scroll-margin-top:64px;font-weight:700}
+  h3{font-size:20px;color:var(--orange);margin:34px 0 8px;scroll-margin-top:64px}
+  h4{font-size:15px;color:var(--purple);margin:22px 0 6px;text-transform:uppercase;letter-spacing:.5px}
+  .anchor{opacity:0;margin-left:8px;font-size:.7em;text-decoration:none;color:var(--faint);transition:opacity .15s}
+  h2.chap:hover .anchor,h3:hover .anchor{opacity:1}
+  p{margin:10px 0}ul,ol{margin:10px 0;padding-left:24px}li{margin:5px 0}
+  strong{color:var(--ink);font-weight:600}html[data-theme="dark"] strong{color:#e6edf3}em{color:var(--ink)}
+  code{background:var(--code);color:var(--accent);padding:1px 6px;border-radius:4px;font-family:'Consolas','Courier New',monospace;font-size:13.5px}
+  .codewrap{position:relative;margin:14px 0}
+  pre{background:var(--code);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0}
+  pre code{background:none;color:#d6e3f0;padding:0;font-size:13.5px;line-height:1.55}
+  pre .c{color:var(--faint)}pre .k{color:var(--orange)}pre .o{color:var(--green)}pre .a{color:var(--amber)}
+  .copybtn{position:absolute;top:8px;right:8px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);border-radius:6px;font-size:11px;padding:3px 9px;cursor:pointer;opacity:0;transition:all .15s;font-family:inherit}
+  .codewrap:hover .copybtn{opacity:1}.copybtn:hover{border-color:var(--accent);color:var(--accent)}.copybtn.done{color:var(--green);border-color:var(--green)}
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent)}
+  tr:nth-child(even) td{background:color-mix(in srgb,var(--ink) 3%,transparent)}
+  table.lookup th{position:sticky;top:var(--topbarh);z-index:2}
+  .box{border-radius:10px;padding:12px 16px;margin:16px 0;border-left:4px solid;position:relative;background:color-mix(in srgb,var(--panel) 70%,transparent)}
+  .box .h{font-weight:700;text-transform:uppercase;letter-spacing:.5px;font-size:12px;margin-bottom:4px;display:flex;align-items:center;gap:7px}
+  .box .h::before{font-size:14px;font-family:'Segoe UI Emoji',sans-serif}
+  .field{border-color:var(--cyan)}.field .h{color:var(--cyan)}.field .h::before{content:"\1F500"}
+  .tip{border-color:var(--green)}.tip .h{color:var(--green)}.tip .h::before{content:"\1F4A1"}
+  .warn{border-color:var(--amber)}.warn .h{color:var(--amber)}.warn .h::before{content:"\26A0\FE0F"}
+  .danger{border-color:var(--red)}.danger .h{color:var(--red)}.danger .h::before{content:"\1F6D1"}
+  .lab{border-color:var(--purple)}.lab .h{color:var(--purple)}.lab .h::before{content:"\1F9EA"}
+  .case{border-color:var(--blue)}.case .h{color:var(--blue)}.case .h::before{content:"\1F4DC"}
+  .cmd{border-color:var(--orange)}.cmd .h{color:var(--orange)}.cmd .h::before{content:"\2328\FE0F"}
+  .intro{font-size:15px;color:var(--dim);font-style:italic;border-left:3px solid var(--line);padding-left:14px;margin:8px 0 20px}
+  .cover{padding:30px 0 22px;border-bottom:1px solid var(--line);margin-bottom:20px}
+  .cover h1{font-size:44px;color:var(--accent);margin:0 0 6px;letter-spacing:.5px;background:linear-gradient(90deg,var(--orange),var(--purple));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .cover .tag{font-size:18px;color:var(--orange);margin-bottom:18px}
+  .cover .by{font-size:14px;color:var(--dim)}
+  .cover .ed{font-size:12px;color:var(--faint);margin-top:14px;letter-spacing:.5px}
+  kbd{background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 6px;font-size:12px;font-family:monospace}
+  hr{border:none;border-top:1px solid var(--line);margin:40px 0}
+  a.xref{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)}a.xref:hover{border-bottom-style:solid}
+  figure{margin:22px 0;text-align:center}
+  figure svg{max-width:100%;height:auto;background:var(--code);border:1px solid var(--line);border-radius:10px;padding:10px}
+  figcaption{font-size:12.5px;color:var(--dim);margin-top:8px;font-style:italic}
+  svg text{font-family:'Segoe UI',system-ui,sans-serif}
+  svg .box-f{fill:var(--panel2);stroke:var(--orange);stroke-width:1.5}
+  svg .box-w{fill:var(--panel2);stroke:var(--amber);stroke-width:1.5}
+  svg .box-d{fill:var(--panel2);stroke:var(--red);stroke-width:1.5}
+  svg .box-b{fill:var(--panel2);stroke:var(--blue);stroke-width:1.5}
+  svg .box-g{fill:var(--panel2);stroke:var(--green);stroke-width:1.5}
+  svg .box-v{fill:var(--panel2);stroke:var(--purple);stroke-width:1.5}
+  svg .lbl{fill:var(--ink);font-size:13px}svg .lbl-s{fill:var(--dim);font-size:11px}svg .lbl-t{fill:var(--orange);font-size:13px;font-weight:700}
+  svg .arr{stroke:var(--dim);stroke-width:1.5;fill:none}svg .arrm{stroke:var(--ink);stroke-width:1.5;fill:none}
+  .pager{display:flex;gap:14px;margin:50px 0 0;border-top:1px solid var(--line);padding-top:22px}
+  .pager a{flex:1;text-decoration:none;border:1px solid var(--line);border-radius:10px;padding:12px 16px;color:var(--ink);transition:all .15s ease;background:color-mix(in srgb,var(--panel) 60%,transparent)}
+  .pager a:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
+  .pager .dir{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:1px}
+  .pager .ttl{font-size:14px;color:var(--accent);margin-top:3px}.pager .next{text-align:right}.pager .empty{visibility:hidden}
+  #palette{position:fixed;inset:0;z-index:70;display:none;align-items:flex-start;justify-content:center;background:rgba(1,4,9,.6);backdrop-filter:blur(3px);padding-top:12vh}
+  #palette.open{display:flex}
+  #palbox{width:min(620px,92vw);max-height:70vh;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+  #palinput{border:none;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);font-size:16px;padding:16px 18px;font-family:inherit;outline:none}
+  #palresults{overflow-y:auto;padding:6px}
+  .palitem{display:flex;align-items:baseline;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer}
+  .palitem .lvl{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--faint);min-width:46px}
+  .palitem .txt{font-size:14px;color:var(--ink)}.palitem .ctx{font-size:11px;color:var(--faint);margin-left:auto}
+  .palitem.sel,.palitem:hover{background:var(--panel2)}.palitem.sel .txt{color:var(--accent)}
+  #palhint{padding:8px 14px;border-top:1px solid var(--line);font-size:11px;color:var(--faint);display:flex;gap:14px}#palhint b{color:var(--dim);font-weight:600}
+  .backtop{position:fixed;bottom:22px;right:24px;background:var(--panel2);border:1px solid var(--line);color:var(--accent);width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:17px;opacity:0;pointer-events:none;transition:opacity .25s,transform .15s;z-index:40;box-shadow:var(--shadow)}
+  .backtop.show{opacity:.9;pointer-events:auto}.backtop:hover{opacity:1;transform:translateY(-3px)}
+  @media(max-width:980px){:root{--navw:0px}#nav{transform:translateX(-105%);width:300px;box-shadow:var(--shadow)}body.navopen #nav{transform:translateX(0)}#topbar{left:0}#hamburger{display:inline-flex}#wrap{padding-left:18px;padding-right:18px}}
+  @media print{#nav,#topbar,#progress,.backtop,.copybtn,.pager,.anchor,#fx{display:none!important}#wrap{margin:0;padding:0}}
+</style>
+
+<style>
+  /* links to Field Guides that live outside this site — kept readable, not clickable */
+  .xref-offsite{color:var(--dim);border-bottom:1px dotted var(--faint);cursor:help}
+</style>
+</head>
+<body>
+<div id="fx" aria-hidden="true"></div>
+<div id="progress"></div>
+
+<nav id="nav">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="9" cy="7" r="3.2" fill="none" stroke="var(--orange)" stroke-width="2"/>
+      <circle cx="9" cy="25" r="3.2" fill="none" stroke="var(--orange)" stroke-width="2"/>
+      <circle cx="23" cy="13" r="3.2" fill="none" stroke="var(--purple)" stroke-width="2"/>
+      <path d="M9 10 V22 M9 13 Q9 13 23 13" fill="none" stroke="var(--orange)" stroke-width="2"/>
+    </svg>
+    <h1>GIT &amp; GITHUB FIELD GUIDE</h1>
+  </div>
+  <div class="sub">Version Control, End to End</div>
+  <input id="navsearch" type="text" placeholder="Filter chapters&hellip;" autocomplete="off" spellcheck="false">
+  <div id="readbar"><span id="readlabel">0 of 0 read</span><div class="track"><div class="fill" id="readfill"></div></div></div>
+
+  <div class="navpart">
+    <button class="part">Front Matter <span class="caret">&#9660;</span></button>
+    <div class="navlinks"><a class="navlink" href="#how-to-read"><span class="check">&#10003;</span>How to Read This Book</a></div>
+  </div>
+  <div class="navpart">
+    <button class="part">Part I &mdash; Foundations <span class="caret">&#9660;</span></button>
+    <div class="navlinks">
+      <a class="navlink" href="#ch1"><span class="check">&#10003;</span>1 &middot; Why Version Control</a>
+      <a class="navlink" href="#ch2"><span class="check">&#10003;</span>2 &middot; How Git Thinks</a>
+      <a class="navlink" href="#ch3"><span class="check">&#10003;</span>3 &middot; Setup &amp; Your First Repo</a>
+      <a class="navlink" href="#ch4"><span class="check">&#10003;</span>4 &middot; The Core Loop</a>
+    </div>
+  </div>
+  <div class="navpart">
+    <button class="part">Part II &mdash; Branching &amp; Merging <span class="caret">&#9660;</span></button>
+    <div class="navlinks">
+      <a class="navlink" href="#ch5"><span class="check">&#10003;</span>5 &middot; Branches</a>
+      <a class="navlink" href="#ch6"><span class="check">&#10003;</span>6 &middot; Merging</a>
+      <a class="navlink" href="#ch7"><span class="check">&#10003;</span>7 &middot; Merge Conflicts</a>
+      <a class="navlink" href="#ch8"><span class="check">&#10003;</span>8 &middot; Rebasing</a>
+      <a class="navlink" href="#ch9"><span class="check">&#10003;</span>9 &middot; Undoing Things</a>
+    </div>
+  </div>
+  <div class="navpart">
+    <button class="part">Part III &mdash; Remotes &amp; GitHub <span class="caret">&#9660;</span></button>
+    <div class="navlinks">
+      <a class="navlink" href="#ch10"><span class="check">&#10003;</span>10 &middot; Remotes</a>
+      <a class="navlink" href="#ch11"><span class="check">&#10003;</span>11 &middot; GitHub: The Platform</a>
+      <a class="navlink" href="#ch12"><span class="check">&#10003;</span>12 &middot; The Collaboration Workflow</a>
+      <a class="navlink" href="#ch13"><span class="check">&#10003;</span>13 &middot; Pull Requests &amp; Code Review</a>
+      <a class="navlink" href="#ch14"><span class="check">&#10003;</span>14 &middot; Issues &amp; Project Management</a>
+      <a class="navlink" href="#ch15"><span class="check">&#10003;</span>15 &middot; Authentication</a>
+    </div>
+  </div>
+  <div class="navpart">
+    <button class="part">Part IV &mdash; Collaboration at Scale <span class="caret">&#9660;</span></button>
+    <div class="navlinks">
+      <a class="navlink" href="#ch16"><span class="check">&#10003;</span>16 &middot; Branching Strategies</a>
+      <a class="navlink" href="#ch17"><span class="check">&#10003;</span>17 &middot; .gitignore &amp; Git LFS</a>
+      <a class="navlink" href="#ch18"><span class="check">&#10003;</span>18 &middot; GitHub Actions (CI/CD)</a>
+      <a class="navlink" href="#ch19"><span class="check">&#10003;</span>19 &middot; Open Source</a>
+      <a class="navlink" href="#ch20"><span class="check">&#10003;</span>20 &middot; Security</a>
+    </div>
+  </div>
+  <div class="navpart">
+    <button class="part">Part V &mdash; Power &amp; Recovery <span class="caret">&#9660;</span></button>
+    <div class="navlinks">
+      <a class="navlink" href="#ch21"><span class="check">&#10003;</span>21 &middot; Advanced Git</a>
+      <a class="navlink" href="#ch-internals"><span class="check">&#10003;</span>22 &middot; Git Internals: Objects &amp; the DAG</a>
+      <a class="navlink" href="#ch-submodules"><span class="check">&#10003;</span>23 &middot; Submodules, Subtrees &amp; Monorepos</a>
+      <a class="navlink" href="#ch-hooks"><span class="check">&#10003;</span>24 &middot; Hooks &amp; Automating Git</a>
+      <a class="navlink" href="#ch22"><span class="check">&#10003;</span>25 &middot; Getting Out of Trouble</a>
+    </div>
+  </div>
+  <div class="navpart">
+    <button class="part">Part VI &mdash; Practice &amp; Reference <span class="caret">&#9660;</span></button>
+    <div class="navlinks">
+      <a class="navlink" href="#ch23"><span class="check">&#10003;</span>23 &middot; Lab Exercises</a>
+      <a class="navlink" href="#ch24"><span class="check">&#10003;</span>24 &middot; Glossary</a>
+      <a class="navlink" href="#appA"><span class="check">&#10003;</span>A &middot; Command Cheat-Sheet</a>
+      <a class="navlink" href="#appB"><span class="check">&#10003;</span>B &middot; Workflow &amp; .gitignore</a>
+      <a class="navlink" href="#appC"><span class="check">&#10003;</span>C &middot; "How Do I Undo X?"</a>
+    </div>
+  </div>
+</nav>
+
+<div id="scrim"></div>
+
+<header id="topbar">
+  <button id="hamburger" class="icobtn" title="Menu" aria-label="Toggle navigation">&#9776;</button>
+  <div class="crumb" id="crumb">The Git &amp; GitHub Field Guide</div>
+  <button class="kbtn" id="palbtn" title="Search everything (Ctrl-K)"><span>&#128269; Search</span> <span class="k">Ctrl K</span></button>
+  <button class="icobtn" id="fsdown" title="Smaller text">A&#8722;</button>
+  <button class="icobtn" id="fsup" title="Larger text">A+</button>
+  <button class="icobtn" id="themebtn" title="Toggle light/dark">&#9789;</button>
+</header>
+
+<div id="wrap">
+<div class="content">
+
+  <div class="cover">
+    <h1>The Git &amp; GitHub Field Guide</h1>
+    <div class="tag">Version Control, End to End</div>
+    <div class="by">Git is the tool every developer, sysadmin, and security pro is expected to know &mdash; and the one most people learn just enough of to be dangerous. This book fixes that: it teaches you how Git actually <em>thinks</em>, so the commands stop being magic incantations you copy from Stack Overflow and become tools you understand. From your first commit to confident collaboration, branching, pull requests, GitHub Actions, and getting yourself out of trouble &mdash; with the mental model that makes it all click.</div>
+    <div class="ed">A companion in the Field Guide series &middot; pairs with the Linux Field Guide &middot; offline, self-contained</div>
+  </div>
+
+  <div class="box tip">
+    <span class="h">This book is interactive</span>
+    Press <kbd>Ctrl</kbd>+<kbd>K</kbd> to search every heading; tick the sidebar <strong>checkboxes</strong> to track progress (or press <kbd>R</kbd>); use <kbd>&larr;</kbd>/<kbd>&rarr;</kbd> to move chapter to chapter; toggle light/dark and text size top-right; hover any command block to <strong>copy</strong> it. Look for <span style="color:var(--orange)">&#x2328;&#xFE0F; Try it</span> boxes &mdash; commands to run in a practice repo, because Git only sticks when you do it. Everything works offline.
+  </div>
+
+  <h2 class="chap" id="how-to-read">How to Read This Book <span class="n">— Front Matter</span></h2>
+  <p class="intro">Most Git confusion comes from learning commands without the model behind them. This book front-loads the mental model (Chapter 2) so everything after it makes sense — read it in order at least through Part II, with a practice repo open.</p>
+
+  <div class="box field">
+    <span class="h">The journey, part by part</span>
+    <strong>Part I (Foundations)</strong> is the crucial mental model &mdash; how Git stores snapshots and the three areas your files move through &mdash; plus your first repo and the everyday commit loop. <strong>Part II (Branching &amp; Merging)</strong> is Git's superpower: branches, merging, conflicts, rebasing, and undoing mistakes. <strong>Part III (Remotes &amp; GitHub)</strong> connects you to GitHub and the collaboration workflow: remotes, pull requests, code review, issues, and auth. <strong>Part IV (Collaboration at Scale)</strong> covers branching strategies, ignoring files, GitHub Actions/CI, open source, and security. <strong>Part V (Power &amp; Recovery)</strong> is advanced moves and &mdash; importantly &mdash; how to recover when things go wrong. <strong>Part VI</strong> is labs and reference.
+  </div>
+
+  <div class="box tip">
+    <span class="h">How to actually use it</span>
+    <strong>Read Chapter 2 carefully</strong> &mdash; if you understand how Git thinks, the rest is easy; if you skip it, you'll be memorizing commands forever. Keep a throwaway practice repo open (<a class="xref" href="#ch3">Chapter 3</a>) and run every "Try it" box. When you hit trouble later, <a class="xref" href="#appC">Appendix C</a> ("How Do I Undo X?") is the page you'll bookmark. This guide pairs naturally with the <a class="xref" href="Linux_Field_Guide.html#ch1">Linux Field Guide</a> &mdash; Git is a command-line tool, and comfort at the shell makes it smoother &mdash; but it stands on its own.
+  </div>
+
+  <div class="box warn">
+    <span class="h">A reassurance, once</span>
+    Git has a reputation for being scary, and the fear has a real source: a wrong command <em>seems</em> like it could destroy your work. Here's the liberating truth you'll learn in <a class="xref" href="#ch9">Chapter 9</a> and <a class="xref" href="#ch22">Chapter 22</a>: <strong>Git almost never truly loses committed work.</strong> Once something is committed, it's extremely hard to lose &mdash; the <code>reflog</code> remembers nearly everything, and "disasters" are usually recoverable. So practice fearlessly in a throwaway repo, make mistakes on purpose, and learn to undo them. The confidence that comes from knowing you can always recover is what turns Git from terrifying into trusty.
+  </div>
+
+  <h2 class="part-divider" id="partI">Part I — Foundations</h2>
+
+  <h2 class="chap" id="ch1">Why Version Control <span class="n">— Chapter 1</span></h2>
+  <p class="intro">Before the commands, the problem. Version control exists to solve real pain that anyone who's ever lost work, juggled "final_v3_FINAL.docx" files, or tried to collaborate on code has felt. Understanding *why* makes the *how* make sense.</p>
+
+  <h3>The pain without it</h3>
+  <p>You've lived the problems version control solves, even if you've never used Git:</p>
+  <ul>
+    <li><strong>"final_v3_REALfinal_v2.docx"</strong> &mdash; manually copying files to save versions, then losing track of which is which.</li>
+    <li><strong>"It worked yesterday"</strong> &mdash; you changed something, it broke, and you can't remember what you changed or get back to the working version.</li>
+    <li><strong>Collaboration chaos</strong> &mdash; two people edit the same file and one overwrites the other's work; emailing zip files back and forth.</li>
+    <li><strong>No history</strong> &mdash; no record of <em>what</em> changed, <em>when</em>, <em>why</em>, or <em>who</em> did it.</li>
+    <li><strong>Fear of changing things</strong> &mdash; afraid to experiment because you might break what works and can't undo it.</li>
+  </ul>
+
+  <h3>What version control gives you</h3>
+  <p>A <strong>version control system (VCS)</strong> tracks changes to files over time, so you can:</p>
+  <ul>
+    <li><strong>Travel through time</strong> &mdash; every saved version (commit) is recoverable; go back to any point.</li>
+    <li><strong>See the full history</strong> &mdash; what changed, when, by whom, and (via commit messages) why.</li>
+    <li><strong>Experiment safely</strong> &mdash; branch off, try something, and either keep it or throw it away without touching the working version.</li>
+    <li><strong>Collaborate without chaos</strong> &mdash; many people work in parallel and merge their changes intelligently.</li>
+    <li><strong>Back up &amp; sync</strong> &mdash; your whole project and its history live in multiple places.</li>
+  </ul>
+
+  <h3>Git won — and here's the lineage</h3>
+  <p>There have been many version control systems (CVS, Subversion/SVN, Mercurial), but <strong>Git</strong> has become the overwhelming standard &mdash; it's what essentially the entire software world uses. It was created in 2005 by Linus Torvalds (yes, the Linux creator &mdash; <a class="xref" href="Linux_Field_Guide.html#ch1">Linux Field Guide</a>) to manage Linux kernel development, after the team lost access to their previous tool. He built it to be <em>fast</em>, <em>distributed</em>, and <em>impossible to corrupt silently</em> &mdash; and those design choices are why it won.</p>
+
+  <h3>Git vs GitHub — the distinction everyone blurs</h3>
+  <p>This trips up every beginner, so let's nail it now:</p>
+  <table>
+    <tr><th></th><th>Git</th><th>GitHub</th></tr>
+    <tr><td>What</td><td>The version-control <em>tool</em> (software you run)</td><td>A <em>website/service</em> that hosts Git repositories</td></tr>
+    <tr><td>Where it runs</td><td>On your computer, locally</td><td>In the cloud (github.com)</td></tr>
+    <tr><td>Made by</td><td>Linus Torvalds / open source</td><td>A company (owned by Microsoft)</td></tr>
+    <tr><td>Needed?</td><td>Yes &mdash; Git works fully on its own, offline</td><td>Optional &mdash; for hosting &amp; collaboration</td></tr>
+    <tr><td>Alternatives</td><td>(none really &mdash; Git is the tool)</td><td>GitLab, Bitbucket, Gitea, etc.</td></tr>
+  </table>
+  <p>Analogy: <strong>Git is the tool; GitHub is a place to store and share what the tool produces</strong> &mdash; like the difference between a word processor (Git) and a document-sharing service (GitHub). You can use Git entirely on your own machine forever; GitHub adds hosting, collaboration, pull requests, and the social/project layer (Part III).</p>
+
+  <div class="box field">
+    <span class="h">From the field — Git is non-negotiable, and worth understanding deeply</span>
+    Git isn't optional in modern tech. Every software job, most sysadmin and security and data roles, every open-source project, and increasingly every kind of "files that change over time" work assumes you know it. The good news and bad news: most people learn just enough Git to get by &mdash; <code>add</code>, <code>commit</code>, <code>push</code> &mdash; and then panic the first time something unexpected happens, because they never learned the <em>model</em>. This book's bet is that an hour spent understanding how Git actually thinks (<a class="xref" href="#ch2">Chapter 2</a>) saves you years of cargo-culting commands you don't understand. The difference between someone who's "okay at Git" and someone who's genuinely comfortable isn't more memorized commands &mdash; it's the mental model that lets them reason about <em>any</em> situation. That's what we build next.
+  </div>
+
+  <h2 class="chap" id="ch2">How Git Thinks <span class="n">— Chapter 2</span></h2>
+  <p class="intro">This is the most important chapter in the book. Almost every Git frustration comes from not having the mental model — and once you have it, the commands stop being magic spells and become obvious. Read this slowly; everything else depends on it.</p>
+
+  <h3>Git stores snapshots, not differences</h3>
+  <p>The first key idea: when you commit, <strong>Git saves a complete snapshot of all your files at that moment</strong> &mdash; not a list of changes, but a picture of the whole project (it's clever about not duplicating unchanged files, but think "snapshot"). Your history is a series of these snapshots, each one a <strong>commit</strong>. This is why you can jump to any past state instantly: Git just shows you that snapshot. Think of commits as save points in a video game &mdash; each is a complete, restorable state of your world.</p>
+
+  <h3>The three areas — the heart of the model</h3>
+  <p>Your files move through <strong>three areas</strong>, and understanding this flow is 80% of understanding Git:</p>
+  <figure>
+  <svg viewBox="0 0 580 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The three Git areas: working directory, staging area, repository">
+    <defs><marker id="ag" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#ff9e44"/></marker></defs>
+    <g>
+    <rect class="box-f" x="14" y="46" width="150" height="64" rx="8"/><text class="lbl-t" x="89" y="74" text-anchor="middle">Working Directory</text><text class="lbl-s" x="89" y="94" text-anchor="middle">your actual files</text>
+    <rect class="box-w" x="214" y="46" width="150" height="64" rx="8"/><text class="lbl" x="289" y="74" text-anchor="middle" fill="var(--amber)">Staging Area</text><text class="lbl-s" x="289" y="94" text-anchor="middle">("the index")</text>
+    <rect class="box-g" x="414" y="46" width="150" height="64" rx="8"/><text class="lbl" x="489" y="74" text-anchor="middle" fill="var(--green)">Repository</text><text class="lbl-s" x="489" y="94" text-anchor="middle">(.git &mdash; the history)</text>
+    <line x1="164" y1="70" x2="212" y2="70" stroke="var(--orange)" stroke-width="2" marker-end="url(#ag)"/><text class="lbl-s" x="188" y="60" text-anchor="middle">git add</text>
+    <line x1="364" y1="70" x2="412" y2="70" stroke="var(--orange)" stroke-width="2" marker-end="url(#ag)"/><text class="lbl-s" x="388" y="60" text-anchor="middle">git commit</text>
+    <line x1="489" y1="118" x2="489" y2="150" class="arr"/><line x1="489" y1="150" x2="89" y2="150" stroke="var(--dim)" stroke-width="1.5"/><line x1="89" y1="150" x2="89" y2="116" class="arr" marker-end="url(#ag)"/>
+    <text class="lbl-s" x="289" y="168" text-anchor="middle" font-style="italic">git checkout / restore (bring a past version back)</text>
+    </g>
+  </svg>
+  <figcaption>The three areas. You edit files (working directory), choose which changes to include (<code>git add</code> &rarr; staging), then save a snapshot (<code>git commit</code> &rarr; repository). This flow is the core of Git.</figcaption>
+  </figure>
+  <table>
+    <tr><th>Area</th><th>What it is</th><th>You get here with</th></tr>
+    <tr><td><strong>Working Directory</strong></td><td>Your actual files, as you edit them right now</td><td>(just editing)</td></tr>
+    <tr><td><strong>Staging Area</strong> (index)</td><td>A "loading dock" &mdash; the changes you've chosen to include in the <em>next</em> commit</td><td><code>git add</code></td></tr>
+    <tr><td><strong>Repository</strong> (<code>.git</code>)</td><td>The permanent history of committed snapshots</td><td><code>git commit</code></td></tr>
+  </table>
+  <p>The staging area is what confuses people but it's powerful: it lets you craft a commit deliberately &mdash; include <em>these</em> changes but not those, so each commit is a clean, logical unit. You edit freely, <code>add</code> the changes you want to group, then <code>commit</code> them as a snapshot with a message.</p>
+
+  <h3>Commits form a chain (the DAG)</h3>
+  <p>Each commit points back to its <strong>parent</strong> (the commit before it), forming a chain &mdash; technically a <strong>directed acyclic graph (DAG)</strong> once branches enter the picture. Each commit has a unique ID (a SHA hash like <code>a3f5c9d</code>). You don't need the graph theory; just hold this picture: <em>commits are snapshots linked in a chain, newest pointing back to oldest.</em> Branches (Part II) are just <em>movable pointers</em> to a commit in this chain &mdash; which is why branching in Git is so cheap and fast.</p>
+
+  <h3>HEAD — "you are here"</h3>
+  <p>One more piece: <strong>HEAD</strong> is a pointer to "where you currently are" &mdash; normally the latest commit on your current branch. When you commit, HEAD (and your branch) move forward to the new commit. When you switch branches or check out an old commit, HEAD moves. Think of HEAD as the "you are here" marker on the map of your history. Many commands make sense once you picture <em>what HEAD points to and where it moves</em>.</p>
+
+  <div class="box field">
+    <span class="h">From the field — this model is the whole game</span>
+    Internalize four things and Git stops being scary forever: <strong>(1)</strong> commits are <em>snapshots</em> (complete save points); <strong>(2)</strong> files flow through <em>three areas</em> &mdash; working dir &rarr; <code>add</code> &rarr; staging &rarr; <code>commit</code> &rarr; repository; <strong>(3)</strong> commits form a <em>chain</em>, each pointing to its parent; <strong>(4)</strong> <em>branches and HEAD are just pointers</em> that move along that chain. Every command in this book is some manipulation of these ideas: <code>add</code> moves changes to staging, <code>commit</code> snapshots staging, <code>branch</code> makes a new pointer, <code>merge</code> joins chains, <code>reset</code> moves a pointer, <code>checkout</code> moves HEAD. People who memorize commands without this model are forever lost when something unexpected happens; people who hold the model can reason out <em>any</em> situation by asking "what are the areas, what do the pointers point to, where will this move them?" Spend the time here. Re-read it if you need to. It pays off on every page after this one.
+  </div>
+
+  <h2 class="chap" id="ch3">Setup &amp; Your First Repo <span class="n">— Chapter 3</span></h2>
+  <p class="intro">Time to get hands-on. Install Git, tell it who you are, and create your first repository — a few minutes of setup, then you have a place to practice everything in this book. Keep a throwaway repo around for the rest of the chapters.</p>
+
+  <h3>Install &amp; identify yourself</h3>
+  <p>Install Git: on Linux it's in your package manager (<code>sudo apt install git</code> &mdash; <a class="xref" href="Linux_Field_Guide.html#ch14">Linux Field Guide</a>); on macOS it comes with the Xcode command-line tools (<code>xcode-select --install</code>) or Homebrew; on Windows, download from git-scm.com (includes "Git Bash"). Verify with <code>git --version</code>. Then do the <strong>one-time global setup</strong> &mdash; Git stamps every commit with your name and email, so set them:</p>
+  <pre><code>git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+git config --global init.defaultBranch main    # name the first branch "main"
+git config --global core.editor "nano"         # or "vim", "code --wait", etc.
+git config --list                               # check your settings</code></pre>
+  <p>These live in <code>~/.gitconfig</code> (<a class="xref" href="Linux_Field_Guide.html#ch19">Linux Field Guide</a>). The name/email aren't verified &mdash; they're just labels on your commits &mdash; but use real ones, especially the email, so platforms like GitHub link commits to your account (Part III).</p>
+
+  <h3>Creating a repository — two ways</h3>
+  <p>A <strong>repository</strong> ("repo") is a project folder that Git is tracking &mdash; it has a hidden <code>.git</code> subfolder holding all the history (<a class="xref" href="#ch2">Chapter 2</a>). You get one two ways:</p>
+  <pre><code># 1. Start fresh in a new or existing folder:
+mkdir myproject &amp;&amp; cd myproject
+git init                       # turns this folder into a repo (creates .git/)
+
+# 2. Or copy an existing repo from elsewhere (e.g. GitHub):
+git clone https://github.com/user/repo.git   # covered in Ch 10</code></pre>
+  <p><code>git init</code> creates the <code>.git</code> directory &mdash; that hidden folder <em>is</em> the repository (the history, config, everything); delete it and you have plain files again. <code>git clone</code> downloads a full copy of a remote repo, history and all (<a class="xref" href="#ch10">Chapter 10</a>). For learning now, use <code>git init</code> in a throwaway folder.</p>
+
+  <h3>Checking status — your most-used command</h3>
+  <p><strong><code>git status</code></strong> tells you the current state &mdash; what's changed, what's staged, what branch you're on. You'll run it constantly; it's how you orient yourself (<a class="xref" href="#ch2">Chapter 2</a>'s three areas, made visible):</p>
+  <pre><code>git status            # the command you'll run more than any other
+git status -s         # short/compact format</code></pre>
+
+  <div class="box cmd">
+    <span class="h">Try it — create your practice repo</span>
+    <pre><code>git --version                          # confirm Git is installed
+git config --global user.name "Test User"
+git config --global user.email "test@example.com"
+mkdir ~/git-practice &amp;&amp; cd ~/git-practice
+git init                               # initialize the repo
+git status                             # "On branch main / No commits yet"
+echo "# My Project" &gt; README.md        # create a file
+git status                             # README.md shows as "untracked"
+ls -a                                  # notice the hidden .git folder</code></pre>
+    Keep this <code>~/git-practice</code> repo &mdash; you'll use it for the next chapters.
+  </div>
+
+  <div class="box tip">
+    <span class="h">"main" vs "master"</span>
+    Older Git defaulted the first branch to <code>master</code>; modern Git and GitHub use <code>main</code>. They're just names for the default branch (<a class="xref" href="#ch5">Chapter 5</a>) &mdash; functionally identical. Setting <code>init.defaultBranch main</code> (above) keeps you consistent with today's convention and with GitHub, avoiding a small mismatch later. If you see <code>master</code> in older projects or tutorials, it's the same thing.
+  </div>
+
+  <div class="box field">
+    <span class="h">From the field — git status is your compass; run it constantly</span>
+    The single habit that makes Git feel calm instead of confusing is running <code>git status</code> <em>all the time</em> &mdash; before and after almost every other command. It answers the questions that cause all the anxiety: What branch am I on? What's changed? What's staged for the next commit? What's Git suggesting I do next? (Status even prints helpful hints like "use git add to stage" or "your branch is ahead by 2 commits.") Beginners get lost because they lose track of state; <code>git status</code> shows you the state, mapped directly onto the three areas from <a class="xref" href="#ch2">Chapter 2</a>. Make it reflexive &mdash; it costs nothing, it's always safe (it changes nothing), and it keeps you grounded. When in doubt at any point in this book: <code>git status</code>.
+  </div>
+
+  <h2 class="chap" id="ch4">The Core Loop <span class="n">— Chapter 4</span></h2>
+  <p class="intro">Edit, stage, commit, repeat. This handful of commands is what you'll do thousands of times — the daily rhythm of working with Git. Master this loop and you can use Git productively; everything else builds on it.</p>
+
+  <h3>The loop</h3>
+  <p>The everyday Git cycle, mapped to the three areas (<a class="xref" href="#ch2">Chapter 2</a>):</p>
+  <ol>
+    <li><strong>Edit</strong> your files (working directory).</li>
+    <li><strong><code>git status</code></strong> &mdash; see what changed.</li>
+    <li><strong><code>git add</code></strong> &mdash; stage the changes you want in the next commit.</li>
+    <li><strong><code>git commit</code></strong> &mdash; snapshot the staged changes with a message.</li>
+    <li>Repeat.</li>
+  </ol>
+  <pre><code>git status                     # what changed?
+git add file.txt               # stage one file
+git add .                      # stage everything changed
+git commit -m "Add the thing"  # snapshot staged changes with a message
+git log                        # see the history</code></pre>
+
+  <h3>Staging: add</h3>
+  <p><strong><code>git add</code></strong> moves changes from the working directory into the staging area (<a class="xref" href="#ch2">Chapter 2</a>). You control exactly what goes in:</p>
+  <table>
+    <tr><th>Command</th><th>Stages</th></tr>
+    <tr><td><code>git add file.txt</code></td><td>One specific file</td></tr>
+    <tr><td><code>git add .</code></td><td>Everything changed in the current directory &amp; below</td></tr>
+    <tr><td><code>git add -A</code></td><td>All changes in the whole repo (incl. deletions)</td></tr>
+    <tr><td><code>git add -p</code></td><td>Interactively pick <em>parts</em> of files (powerful for clean commits)</td></tr>
+  </table>
+
+  <h3>Committing</h3>
+  <p><strong><code>git commit</code></strong> takes everything staged and saves it as a snapshot with a message:</p>
+  <pre><code>git commit -m "Short summary of what changed"
+git commit                     # opens your editor for a longer message
+git commit -am "msg"           # stage all TRACKED changes AND commit (skips add)</code></pre>
+  <p>The <strong>commit message</strong> matters &mdash; it's the "why" your future self and teammates will read. Good convention: a concise imperative summary line (under ~50 chars), like "Fix login timeout bug" or "Add user export feature" &mdash; phrased as if completing "This commit will...". For bigger changes, a blank line then a paragraph explaining the why. (<code>commit -am</code> is a handy shortcut, but it only stages <em>already-tracked</em> files &mdash; brand-new files still need an explicit <code>add</code>.)</p>
+
+  <h3>Seeing history &amp; changes</h3>
+  <table>
+    <tr><th>Command</th><th>Shows</th></tr>
+    <tr><td><code>git log</code></td><td>Commit history (newest first): hash, author, date, message</td></tr>
+    <tr><td><code>git log --oneline</code></td><td>Compact one-line-per-commit view</td></tr>
+    <tr><td><code>git log --oneline --graph --all</code></td><td>Visual graph of all branches (<a class="xref" href="#ch5">Chapter 5</a>)</td></tr>
+    <tr><td><code>git diff</code></td><td>Unstaged changes (working dir vs staging)</td></tr>
+    <tr><td><code>git diff --staged</code></td><td>Staged changes (what the next commit will include)</td></tr>
+    <tr><td><code>git show HEAD</code></td><td>What the most recent commit changed</td></tr>
+  </table>
+
+  <div class="box cmd">
+    <span class="h">Try it — make your first commits</span>
+    <pre><code>cd ~/git-practice              # the repo from Chapter 3
+git add README.md              # stage the README
+git status                     # now shows it as "staged"
+git commit -m "Add README"     # your first commit!
+git log                        # see it in the history
+echo "Some notes" &gt; notes.txt  # make a new file
+echo "More content" &gt;&gt; README.md   # change an existing one
+git status                     # one new, one modified
+git diff                       # see exactly what changed in README
+git add .                      # stage both
+git commit -m "Add notes and expand README"
+git log --oneline              # two commits now</code></pre>
+  </div>
+
+  <div class="box field">
+    <span class="h">From the field — commit small, commit often, write real messages</span>
+    Three habits make Git history a help instead of a mess. <strong>Commit small, logical units</strong> &mdash; one change, one commit (the staging area, <a class="xref" href="#ch2">Chapter 2</a>, exists exactly so you can group related changes and leave unrelated ones for a separate commit). A commit that says "fixed stuff" and touches 40 unrelated files is useless to future-you; ten focused commits are a readable story. <strong>Commit often</strong> &mdash; small frequent commits give you fine-grained save points to return to (<a class="xref" href="#ch9">Chapter 9</a>) and make mistakes cheap to undo. <strong>Write messages for humans</strong> &mdash; explain <em>why</em>, not just <em>what</em> (the diff already shows what); "Fix race condition in payment handler" beats "update code." You're writing to your future self and your teammates, who <em>will</em> read these when hunting a bug six months from now. This loop &mdash; edit, status, add, commit &mdash; is 90% of daily Git; get it smooth and the rest is additions to it.
+  </div>
+
+  <h2 class="part-divider" id="partII">Part II — Branching &amp; Merging</h2>
+
+  <h2 class="chap" id="ch5">Branches <span class="n">— Chapter 5</span></h2>
+  <p class="intro">Branching is Git's superpower — and once you understand it's just a movable pointer (Chapter 2), it stops being scary. Branches let you work on something in isolation without disturbing the main line, which is the foundation of all real Git workflows.</p>
+
+  <h3>What a branch really is</h3>
+  <p>Here's the demystifying truth: <strong>a branch is just a lightweight, movable pointer to a commit</strong> (<a class="xref" href="#ch2">Chapter 2</a>). That's it. The default branch (<code>main</code>) is a pointer to the latest commit on the main line. Creating a branch creates another pointer to the same commit; as you commit on that branch, its pointer moves forward independently. Because a branch is just a 40-character pointer, creating one is <em>instant</em> and free &mdash; unlike older systems where branching copied everything. This cheapness is why Git workflows branch constantly.</p>
+
+  <figure>
+  <svg viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A branch diverging from main">
+    <g>
+    <line x1="40" y1="70" x2="360" y2="70" class="arrm"/>
+    <circle cx="60" cy="70" r="9" class="box-g"/><circle cx="150" cy="70" r="9" class="box-g"/><circle cx="240" cy="70" r="9" class="box-g"/><circle cx="360" cy="70" r="9" class="box-g"/>
+    <text class="lbl-s" x="400" y="74">main</text>
+    <line x1="240" y1="79" x2="330" y2="140" class="arrm" stroke="var(--purple)"/>
+    <circle cx="330" cy="140" r="9" class="box-v"/><circle cx="430" cy="140" r="9" class="box-v"/>
+    <line x1="339" y1="140" x2="421" y2="140" class="arrm" stroke="var(--purple)"/>
+    <text class="lbl-s" x="455" y="144" fill="var(--purple)">feature</text>
+    <text class="lbl-s" x="280" y="185" text-anchor="middle" font-style="italic">A branch diverges at a commit; both lines grow independently until you merge.</text>
+    </g>
+  </svg>
+  <figcaption>Branching: <code>feature</code> splits off <code>main</code> at a commit. You build on it without touching <code>main</code>, then merge later (Chapter 6).</figcaption>
+  </figure>
+
+  <h3>Why branch?</h3>
+  <ul>
+    <li><strong>Isolate work</strong> &mdash; build a feature or fix a bug without destabilizing the working <code>main</code>.</li>
+    <li><strong>Experiment freely</strong> &mdash; try an idea on a branch; if it's bad, delete the branch and it's gone, with <code>main</code> untouched.</li>
+    <li><strong>Collaborate</strong> &mdash; everyone works on their own branch and merges via pull requests (Part III).</li>
+    <li><strong>Keep <code>main</code> deployable</strong> &mdash; <code>main</code> stays clean and releasable while work happens on branches.</li>
+  </ul>
+
+  <h3>The branch commands</h3>
+  <table>
+    <tr><th>Command</th><th>Does</th></tr>
+    <tr><td><code>git branch</code></td><td>List branches (<code>*</code> marks current)</td></tr>
+    <tr><td><code>git branch feature</code></td><td>Create a branch (doesn't switch to it)</td></tr>
+    <tr><td><code>git switch feature</code></td><td>Switch to a branch (modern command)</td></tr>
+    <tr><td><code>git switch -c feature</code></td><td>Create <em>and</em> switch in one step</td></tr>
+    <tr><td><code>git checkout feature</code></td><td>Older way to switch (still works)</td></tr>
+    <tr><td><code>git branch -d feature</code></td><td>Delete a merged branch (<code>-D</code> force-delete)</td></tr>
+    <tr><td><code>git branch -m newname</code></td><td>Rename the current branch</td></tr>
+  </table>
+  <p>(<code>git switch</code>/<code>git restore</code> are the newer, clearer commands that split what the overloaded <code>git checkout</code> used to do; older docs and habits use <code>checkout</code> for both &mdash; both work.)</p>
+
+  <div class="box cmd">
+    <span class="h">Try it — branch, work, switch back</span>
+    <pre><code>cd ~/git-practice
+git branch                       # see you're on main
+git switch -c feature-test       # create and switch to a new branch
+echo "experimental" &gt; experiment.txt
+git add . &amp;&amp; git commit -m "Add experiment on feature branch"
+git log --oneline                # the new commit is here
+git switch main                  # back to main
+ls                               # experiment.txt is GONE -- it's only on the branch!
+git log --oneline                # main doesn't have that commit
+git switch feature-test          # switch back; experiment.txt returns</code></pre>
+    Watch how switching branches changes the files in your working directory &mdash; that "time travel" feeling is branches in action.
+  </div>
+
+  <div class="box field">
+    <span class="h">From the field — branch for everything, it's free</span>
+    Once branches click as "just a cheap pointer," you'll branch constantly &mdash; and you should. The professional norm is: <strong>never commit directly to <code>main</code>; make a branch for every feature, fix, or experiment</strong>, however small (<a class="xref" href="#ch12">Chapter 12</a>, <a class="xref" href="#ch16">16</a>). It keeps <code>main</code> always clean and deployable, isolates your work so a half-finished feature never breaks the main line, and makes collaboration via pull requests (Part III) natural. The thing beginners fear &mdash; "what if I mess up the branch?" &mdash; is exactly why branches are great: a bad branch is deleted with one command and <code>main</code> never knew it existed. Watching <code>experiment.txt</code> appear and disappear as you switch branches (the Try-it box) is the moment branches stop being abstract. Branch early, branch often; it costs nothing and saves everything.
+  </div>
+
+  <h2 class="chap" id="ch6">Merging <span class="n">— Chapter 6</span></h2>
+  <p class="intro">Branching splits work apart; merging brings it back together. Once your feature branch is done, you merge it into main. Understanding the two kinds of merge — fast-forward and three-way — makes the history make sense and conflicts (Chapter 7) less mysterious.</p>
+
+  <h3>The basic merge</h3>
+  <p>To merge, you <strong>switch to the branch you want to merge <em>into</em></strong> (usually <code>main</code>), then merge the other branch <em>in</em>:</p>
+  <pre><code>git switch main                # go to the destination branch
+git merge feature              # bring feature's commits into main
+git branch -d feature          # delete the merged branch (optional cleanup)</code></pre>
+  <p>The direction matters and trips people up: you merge <em>from</em> the feature branch <em>into</em> the branch you're currently on. So to get your feature into main: be on <code>main</code>, run <code>git merge feature</code>.</p>
+
+  <h3>Two kinds of merge</h3>
+  <table>
+    <tr><th>Type</th><th>When</th><th>Result</th></tr>
+    <tr><td><strong>Fast-forward</strong></td><td><code>main</code> hasn't changed since you branched</td><td>Git just slides <code>main</code>'s pointer forward to the feature's tip &mdash; no merge commit, a straight line</td></tr>
+    <tr><td><strong>Three-way merge</strong></td><td>Both <code>main</code> and the feature got new commits (they diverged)</td><td>Git combines both lines and creates a new <strong>merge commit</strong> with two parents</td></tr>
+  </table>
+  <figure>
+  <svg viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A three-way merge creating a merge commit">
+    <g>
+    <line x1="40" y1="60" x2="300" y2="60" class="arrm"/>
+    <circle cx="60" cy="60" r="8" class="box-g"/><circle cx="150" cy="60" r="8" class="box-g"/><circle cx="300" cy="60" r="8" class="box-g"/>
+    <line x1="150" y1="68" x2="300" y2="130" class="arrm" stroke="var(--purple)"/>
+    <circle cx="230" cy="100" r="8" class="box-v"/><circle cx="300" cy="130" r="8" class="box-v"/>
+    <circle cx="430" cy="90" r="10" class="box-f"/><text class="lbl-s" x="448" y="94">merge commit</text>
+    <line x1="308" y1="62" x2="421" y2="86" class="arrm"/>
+    <line x1="306" y1="128" x2="421" y2="96" class="arrm" stroke="var(--purple)"/>
+    <text class="lbl-s" x="280" y="180" text-anchor="middle" font-style="italic">Both lines diverged, so Git makes a merge commit joining them (two parents).</text>
+    </g>
+  </svg>
+  <figcaption>A three-way merge: when both branches have new commits, Git creates a merge commit with two parents, knitting the histories together.</figcaption>
+  </figure>
+
+  <h3>Fast-forward vs merge commit — and why people care</h3>
+  <p>A <strong>fast-forward</strong> keeps history as a clean straight line (no extra commit), which looks tidy but loses the information that a branch ever existed. A <strong>merge commit</strong> preserves that a feature was developed separately and merged as a unit. Teams have preferences: some like the explicit merge commits (<code>git merge --no-ff</code> forces one even when fast-forward is possible), others prefer linear history via rebasing (<a class="xref" href="#ch8">Chapter 8</a>). There's no universally right answer; it's a project convention (<a class="xref" href="#ch16">Chapter 16</a>).</p>
+
+  <h3>Checking what's merged</h3>
+  <pre><code>git merge feature              # do the merge
+git log --oneline --graph --all   # SEE the merge in the history graph
+git branch --merged            # which branches are fully merged (safe to delete)
+git branch --no-merged         # branches with unmerged work</code></pre>
+
+  <div class="box cmd">
+    <span class="h">Try it — make and merge a branch</span>
+    <pre><code>cd ~/git-practice
+git switch -c add-feature         # new branch
+echo "a new feature" &gt; feature.txt
+git add . &amp;&amp; git commit -m "Add feature.txt"
+git switch main                   # back to main
+git merge add-feature             # merge it in (likely a fast-forward)
+ls                                # feature.txt is now on main
+git log --oneline --graph --all   # see the history
+git branch -d add-feature         # clean up the merged branch</code></pre>
+  </div>
+
+  <div class="box field">
+    <span class="h">From the field — merge direction and "graph" are the keys</span>
+    Two things make merging painless. First, <strong>get the direction right</strong>: switch to the destination (<code>main</code>), then <code>git merge &lt;source&gt;</code> &mdash; you pull the feature <em>into</em> where you are. Reversing it (merging main into your feature) is sometimes intentional but usually not what beginners mean. Second, <strong>live in <code>git log --oneline --graph --all</code></strong> &mdash; it draws the actual branch/merge structure as ASCII art, and seeing the graph is what makes branching and merging finally click; you watch the lines diverge and rejoin. Don't fear merges &mdash; most are clean fast-forwards or automatic three-way merges where Git figures everything out. The only time merging gets interesting is when both sides changed the same lines, which is a <em>conflict</em> &mdash; and conflicts are normal, not errors, and entirely manageable once you know the routine (<a class="xref" href="#ch7">Chapter 7</a>).
+  </div>
+
+  <h2 class="chap" id="ch7">Merge Conflicts <span class="n">— Chapter 7</span></h2>
+  <p class="intro">A merge conflict sounds alarming but it's routine — it just means two branches changed the same lines, and Git needs you to decide which version wins. It is not an error or a disaster. Learn the simple routine to resolve one and conflicts stop being scary forever.</p>
+
+  <h3>Why conflicts happen</h3>
+  <p>When you merge (<a class="xref" href="#ch6">Chapter 6</a>), Git combines changes automatically &mdash; <em>unless</em> both branches edited <strong>the same lines of the same file</strong> in different ways. Then Git can't know which version you want, so it stops and asks you. That's a conflict. It's a normal, expected part of collaboration, not a sign you did something wrong. Git pauses the merge, marks the conflicting spots in the file, and waits for you to resolve them.</p>
+
+  <h3>What a conflict looks like</h3>
+  <p>Git inserts <strong>conflict markers</strong> into the affected file, showing both versions:</p>
+  <pre><code>Here is some shared text.
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+This is the version from your current branch (e.g. main).
+=======
+This is the version from the branch you're merging in.
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature
+More shared text.</code></pre>
+  <p>Read it as three parts: between <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> and <code>=======</code> is <em>your</em> side (the current branch); between <code>=======</code> and <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature</code> is <em>their</em> side (the branch being merged). Your job: edit this into the final version you want, and delete the marker lines.</p>
+
+  <h3>The resolution routine</h3>
+  <ol>
+    <li><strong>See what conflicted:</strong> <code>git status</code> lists files "both modified."</li>
+    <li><strong>Open each conflicted file</strong> and find the markers (search for <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>).</li>
+    <li><strong>Edit to the final result</strong> &mdash; keep your side, their side, both, or a blend &mdash; and <strong>delete all three marker lines</strong> (<code>&lt;&lt;&lt;</code>, <code>===</code>, <code>&gt;&gt;&gt;</code>).</li>
+    <li><strong>Stage the resolved file:</strong> <code>git add file</code> (this tells Git "I've resolved this one").</li>
+    <li><strong>Complete the merge:</strong> <code>git commit</code> (Git pre-fills a merge message).</li>
+  </ol>
+  <pre><code>git merge feature              # CONFLICT! Git pauses
+git status                     # see which files conflict
+# ...edit each file: pick the right content, remove the &lt;&lt;&lt; === &gt;&gt;&gt; markers...
+git add conflicted-file.txt    # mark it resolved
+git commit                     # finish the merge
+# changed your mind mid-merge? bail out completely:
+git merge --abort              # undo the whole merge, back to before it started</code></pre>
+
+  <h3>Tools that help</h3>
+  <p>You don't have to edit markers by hand. <strong>VS Code</strong> and most editors show conflicts with clickable "Accept Current / Accept Incoming / Accept Both" buttons. <code>git mergetool</code> launches a configured visual merge tool. And the safety valve worth memorizing: <strong><code>git merge --abort</code></strong> throws away the in-progress merge and returns you to exactly where you were before &mdash; so you can always back out and try again calmly.</p>
+
+  <div class="box cmd">
+    <span class="h">Try it — create and resolve a conflict on purpose</span>
+    <pre><code>cd ~/git-practice
+echo "line one" &gt; conflict.txt
+git add . &amp;&amp; git commit -m "Add conflict.txt"
+git switch -c branch-a
+echo "version from A" &gt; conflict.txt   # change the line on branch A
+git commit -am "A's version"
+git switch main
+echo "version from main" &gt; conflict.txt # change the SAME line on main
+git commit -am "main's version"
+git merge branch-a               # CONFLICT!
+git status                       # see "both modified"
+cat conflict.txt                 # see the &lt;&lt;&lt; === &gt;&gt;&gt; markers
+nano conflict.txt                # edit to the final version, delete the markers
+git add conflict.txt
+git commit                       # finish -- conflict resolved!</code></pre>
+    Doing this once, deliberately, removes the fear entirely.
+  </div>
+
+  <div class="box field">
+    <span class="h">From the field — conflicts are normal; the routine is always the same</span>
+    New users panic at their first conflict like something broke. Nothing broke &mdash; Git is doing exactly the right thing: when it can't safely guess, it asks <em>you</em>, the human who knows which version is correct. The routine never changes: <code>git status</code> to see the conflicts, open each file and edit the marked sections into what you actually want (removing the <code>&lt;&lt;&lt;</code>/<code>===</code>/<code>&gt;&gt;&gt;</code> lines), <code>git add</code> each resolved file, then <code>git commit</code>. And remember the escape hatch &mdash; <code>git merge --abort</code> &mdash; so you always know you can back out and nothing is permanent until you commit. Two habits reduce how often you hit conflicts: <em>pull/merge frequently</em> (small, frequent integrations conflict less than giant ones &mdash; <a class="xref" href="#ch10">Chapter 10</a>), and <em>keep branches short-lived</em> (<a class="xref" href="#ch16">Chapter 16</a>). Resolve a conflict deliberately once in your practice repo and you'll never fear them again.
+  </div>
+
+  <h2 class="chap" id="ch8">Rebasing <span class="n">— Chapter 8</span></h2>
+  <p class="intro">Rebasing is the other way to combine branches — instead of joining histories with a merge commit, it *replays* your commits on top of another branch, producing a clean, linear history. It's powerful and a little dangerous, and it comes with one golden rule you must never break.</p>
+
+  <h3>Rebase vs merge — the same goal, different shape</h3>
+  <p>Both merge (<a class="xref" href="#ch6">Chapter 6</a>) and rebase integrate one branch's work with another's. The difference is the <em>result</em>:</p>
+  <table>
+    <tr><th></th><th>Merge</th><th>Rebase</th></tr>
+    <tr><td>How</td><td>Joins the two histories with a merge commit</td><td>Re-applies your commits one-by-one on top of the target</td></tr>
+    <tr><td>History shape</td><td>Preserves the branching (a graph with merge commits)</td><td>Linear, as if you'd worked on top of the latest all along</td></tr>
+    <tr><td>Rewrites commits?</td><td>No (keeps original commits)</td><td><strong>Yes</strong> &mdash; creates new commits with new IDs</td></tr>
+    <tr><td>Best for</td><td>Preserving exactly what happened; shared branches</td><td>Clean history; tidying <em>your own</em> work before sharing</td></tr>
+  </table>
+
+  <h3>The basic rebase</h3>
+  <pre><code>git switch feature
+git rebase main                # replay feature's commits on top of latest main
+# now feature looks like it was built on current main, linearly
+# then a fast-forward merge into main gives a clean straight history:
+git switch main &amp;&amp; git merge feature</code></pre>
+  <p>The mental picture: rebase <em>lifts</em> your branch's commits off where they were, updates the base to the tip of <code>main</code>, and <em>re-plays</em> your commits there &mdash; giving new commits (new IDs) sitting in a clean line on top of main. If a replayed commit conflicts, you resolve it (<a class="xref" href="#ch7">Chapter 7</a>) and run <code>git rebase --continue</code>; <code>git rebase --abort</code> bails out.</p>
+
+  <h3>Interactive rebase — cleaning up your commits</h3>
+  <p>The genuinely loved feature: <strong><code>git rebase -i</code></strong> lets you rewrite a series of <em>your own, unpushed</em> commits before sharing them &mdash; squash several messy "wip" commits into one clean commit, reword messages, reorder, or drop commits:</p>
+  <pre><code>git rebase -i HEAD~4            # interactively edit the last 4 commits
+# an editor opens listing them; change "pick" to:
+#   squash (s) -- fold into the previous commit
+#   reword (r) -- change the message
+#   drop   (d) -- remove the commit
+#   edit   (e) -- pause to amend it
+# save, and Git replays them with your changes</code></pre>
+  <p>This turns a messy work-in-progress branch ("wip", "fix typo", "actually fix it", "ok now it works") into one or two clean, meaningful commits before anyone else sees them &mdash; great hygiene for pull requests (<a class="xref" href="#ch13">Chapter 13</a>).</p>
+
+  <div class="box danger">
+    <span class="h">The golden rule: never rebase shared history</span>
+    Because rebase <strong>rewrites commits</strong> (new IDs replace old ones), it must <em>only</em> be used on commits that are still <strong>private to you</strong> &mdash; commits you haven't pushed, or a branch nobody else has based work on. <strong>Never rebase commits that others have already pulled</strong> (especially never rebase <code>main</code> or any shared branch). If you do, everyone else's history diverges from yours, you'll be tempted to <code>push --force</code> over their work, and you create a painful mess for the whole team. The rule, memorized: <em>rebase your own un-shared work to tidy it; merge everything else.</em> When in doubt, merge &mdash; merge is always safe; rebase is only safe on private commits.
+  </div>
+
+  <div class="box cmd">
+    <span class="h">Try it — rebase and squash (in your practice repo)</span>
+    <pre><code>cd ~/git-practice
+git switch -c tidy-me
+echo "1" &gt; a.txt; git add . &amp;&amp; git commit -m "wip"
+echo "2" &gt;&gt; a.txt; git commit -am "more wip"
+echo "3" &gt;&gt; a.txt; git commit -am "fix typo"
+git log --oneline                # three messy commits
+git rebase -i HEAD~3             # change the 2nd and 3rd "pick" to "squash", save
+# (an editor opens for the combined message; save it)
+git log --oneline                # now ONE clean commit -- but only do this BEFORE pushing!</code></pre>
+  </div>
+
+  <div class="box field">
+    <span class="h">From the field — rebase to polish your own work, merge to integrate</span>
+    Here's the practical way to think about it: <strong>rebase is for tidying your own private commits; merge is for combining shared work.</strong> The two everyday uses of rebase are (1) <code>git rebase main</code> on your feature branch to get the latest changes and keep history linear, and (2) <code>git rebase -i</code> to squash your messy work-in-progress commits into clean ones before opening a pull request (<a class="xref" href="#ch13">Chapter 13</a>) &mdash; reviewers see a tidy story instead of "wip, wip, oops, fix." Both operate on <em>your unshared</em> commits, which is safe. The moment commits are shared, switch to merge. If rebasing ever feels confusing or risky, just merge instead &mdash; you'll get a slightly messier graph but never a disaster. Many teams happily never use anything fancier than merge. Rebase is a sharp, useful tool; the golden rule (above) is what keeps it from cutting you.
+  </div>
+
+  <h2 class="chap" id="ch9">Undoing Things <span class="n">— Chapter 9</span></h2>
+  <p class="intro">The chapter that removes the fear. Git's reputation for being scary comes entirely from "what if I did the wrong thing?" — so here's how to undo basically anything. Once you know you can always recover, you'll use Git boldly instead of timidly.</p>
+
+  <h3>Match the undo to the situation</h3>
+  <p>The confusing part is that there are several "undo" commands for different situations. The key question is always: <em>which of the three areas (<a class="xref" href="#ch2">Chapter 2</a>) is the thing I want to undo in?</em></p>
+  <table>
+    <tr><th>I want to&hellip;</th><th>Command</th></tr>
+    <tr><td>Discard un-staged changes to a file (revert it to last commit)</td><td><code>git restore file</code></td></tr>
+    <tr><td>Unstage a file (keep the edits, just remove from staging)</td><td><code>git restore --staged file</code></td></tr>
+    <tr><td>Fix the <em>last commit's message</em> or add a forgotten file to it</td><td><code>git commit --amend</code></td></tr>
+    <tr><td>Undo recent commits but <em>keep</em> the changes (to redo/re-commit)</td><td><code>git reset --soft HEAD~1</code></td></tr>
+    <tr><td>Undo recent commits and <em>discard</em> the changes entirely</td><td><code>git reset --hard HEAD~1</code> (careful!)</td></tr>
+    <tr><td>Undo a commit by making a <em>new</em> commit that reverses it (safe on shared history)</td><td><code>git revert &lt;commit&gt;</code></td></tr>
+    <tr><td>Recover something you think you lost</td><td><code>git reflog</code> (below)</td></tr>
+  </table>
+
+  <h3>restore — for working-directory and staging</h3>
+  <pre><code>git restore file.txt           # throw away unstaged edits to file (back to last commit)
+git restore .                  # discard ALL unstaged changes (careful)
+git restore --staged file.txt  # unstage (move from staging back to working dir; edits kept)</code></pre>
+  <p><code>restore</code> handles the everyday "I messed up this file, put it back" and "oops, I staged the wrong thing." Note <code>git restore file</code> (without <code>--staged</code>) <em>discards</em> your edits &mdash; that part isn't recoverable via reflog since it was never committed, so be sure.</p>
+
+  <h3>reset — moving the branch pointer</h3>
+  <p><code>reset</code> moves your branch pointer (and HEAD) to an earlier commit (<a class="xref" href="#ch2">Chapter 2</a>). The three modes differ in what they do to your changes:</p>
+  <table>
+    <tr><th>Mode</th><th>Moves pointer?</th><th>Your changes?</th></tr>
+    <tr><td><code>--soft</code></td><td>Yes</td><td>Kept, and left <em>staged</em> (ready to re-commit)</td></tr>
+    <tr><td><code>--mixed</code> (default)</td><td>Yes</td><td>Kept, but <em>unstaged</em></td></tr>
+    <tr><td><code>--hard</code></td><td>Yes</td><td><strong>Discarded</strong> &mdash; gone from working dir too</td></tr>
+  </table>
+  <p>Common use: <code>git reset --soft HEAD~1</code> "uncommits" the last commit while keeping all its changes staged &mdash; perfect for "I committed too early / want to redo that commit." <code>--hard</code> is the one to respect: it throws away changes.</p>
+
+  <h3>revert — the safe undo for shared history</h3>
+  <p><code>git revert &lt;commit&gt;</code> doesn't rewrite history &mdash; it creates a <em>new</em> commit that undoes the changes of an old one. Because it adds rather than rewrites, it's <strong>safe to use on commits you've already pushed/shared</strong> (unlike reset/rebase &mdash; <a class="xref" href="#ch8">Chapter 8</a>). This is how you undo a bad commit that's already on a shared branch like <code>main</code>.</p>
+
+  <h3>reflog — the ultimate safety net</h3>
+  <p>Here's the reassuring secret: <strong><code>git reflog</code> records (almost) every move HEAD makes</strong> &mdash; every commit, switch, reset, rebase &mdash; for weeks. So even after a "disastrous" <code>reset --hard</code>, the old commit is still findable in the reflog, and you can return to it:</p>
+  <pre><code>git reflog                     # a timeline of everywhere HEAD has been
+# find the commit you want (e.g. abc1234), then:
+git reset --hard abc1234       # jump back to it -- recovered!
+# or make a branch from it:
+git branch recovered abc1234</code></pre>
+  <p>This is why <strong>committed work is almost never truly lost in Git.</strong> If you commit regularly (<a class="xref" href="#ch4">Chapter 4</a>), the reflog is your time machine.</p>
+
+  <div class="box cmd">
+    <span class="h">Try it — break and recover (fearlessly)</span>
+    <pre><code>cd ~/git-practice
+echo "important work" &gt; valuable.txt
+git add . &amp;&amp; git commit -m "Add valuable work"
+git log --oneline                # note the commit
+git reset --hard HEAD~1          # "oops" -- uncommit and discard
+ls                               # valuable.txt is gone!
+git reflog                       # find the "Add valuable work" commit's hash
+git reset --hard &lt;that-hash&gt;     # bring it ALL back
+ls                               # valuable.txt returns -- nothing was truly lost</code></pre>
+    Doing this once proves to yourself that Git has your back.
+  </div>
+
+  <div class="box field">
+    <span class="h">From the field — committed work is safe, so be bold</span>
+    The biggest unlock in this whole book: <strong>once something is committed, it's extremely hard to actually lose.</strong> The reflog remembers nearly everything for weeks, so almost every "I destroyed my work" panic is recoverable with <code>git reflog</code> + <code>git reset --hard &lt;hash&gt;</code>. This changes how you should use Git: <em>commit often</em> (each commit is a recovery point), then experiment, rebase, reset, and rearrange <strong>boldly</strong>, knowing you can get back. The two things that genuinely <em>aren't</em> protected: changes you never committed (a <code>restore</code> or <code>reset --hard</code> over uncommitted edits is unrecoverable), and rewriting <em>shared</em> history (<a class="xref" href="#ch8">Chapter 8</a>'s golden rule). So: commit your work before doing anything risky, prefer <code>revert</code> for undoing shared commits, and keep <code>reflog</code> in your back pocket as the universal "get me out of this" tool. Knowing recovery is almost always possible is exactly what turns Git from terrifying into trustworthy.
+  </div>
+
+  <h2 class="part-divider" id="partIII">Part III — Remotes &amp; GitHub</h2>
+
+  <h2 class="chap" id="ch10">Remotes <span class="n">— Chapter 10</span></h2>
+  <p class="intro">So far everything has been local. Remotes connect your repository to a copy elsewhere — usually GitHub — so you can back up your work, access it anywhere, and collaborate. Four commands (clone, push, pull, fetch) cover almost everything.</p>
+
+  <h3>What a remote is</h3>
+  <p>A <strong>remote</strong> is a version of your repository hosted somewhere else (GitHub, GitLab, a server). Because Git is <em>distributed</em> (<a class="xref" href="#ch1">Chapter 1</a>), each copy is a full repository with complete history &mdash; the remote isn't "the real one" and yours a mere checkout; they're peers that you keep in sync. The conventional name for your main remote is <strong><code>origin</code></strong>. The flow:</p>
+  <figure>
+  <svg viewBox="0 0 560 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Local repo syncing with a remote via push and pull">
+    <defs><marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 Z" fill="#ff9e44"/></marker></defs>
+    <g>
+    <rect class="box-f" x="30" y="55" width="170" height="70" rx="8"/><text class="lbl-t" x="115" y="85" text-anchor="middle">Your computer</text><text class="lbl-s" x="115" y="105" text-anchor="middle">local repo</text>
+    <rect class="box-g" x="360" y="55" width="170" height="70" rx="8"/><text class="lbl" x="445" y="85" text-anchor="middle" fill="var(--green)">GitHub (origin)</text><text class="lbl-s" x="445" y="105" text-anchor="middle">remote repo</text>
+    <line x1="205" y1="75" x2="355" y2="75" stroke="var(--orange)" stroke-width="2" marker-end="url(#ar)"/><text class="lbl-s" x="280" y="66" text-anchor="middle">git push (upload)</text>
+    <line x1="355" y1="108" x2="205" y2="108" stroke="var(--orange)" stroke-width="2" marker-end="url(#ar)"/><text class="lbl-s" x="280" y="126" text-anchor="middle">git pull / fetch (download)</text>
+    </g>
+  </svg>
+  <figcaption>Local and remote are peer repositories. <code>push</code> sends your commits up; <code>pull</code>/<code>fetch</code> bring others' commits down.</figcaption>
+  </figure>
+
+  <h3>The four commands</h3>
+  <table>
+    <tr><th>Command</th><th>Does</th></tr>
+    <tr><td><code>git clone URL</code></td><td>Download a full copy of a remote repo (history and all) &mdash; how you start from an existing repo</td></tr>
+    <tr><td><code>git push</code></td><td>Upload your local commits to the remote</td></tr>
+    <tr><td><code>git pull</code></td><td>Download <em>and merge</em> remote commits into your branch (= <code>fetch</code> + <code>merge</code>)</td></tr>
+    <tr><td><code>git fetch</code></td><td>Download remote commits but <em>don't</em> merge yet (look before you leap)</td></tr>
+  </table>
+
+  <h3>Connecting a local repo to a remote</h3>
+  <p>If you started locally with <code>git init</code> (<a class="xref" href="#ch3">Chapter 3</a>), you link it to a remote you created on GitHub (<a class="xref" href="#ch11">Chapter 11</a>):</p>
+  <pre><code>git remote add origin https://github.com/you/repo.git   # link the remote
+git remote -v                                            # verify it
+git push -u origin main          # first push (-u sets the default upstream)
+# after that, just:
+git push                         # subsequent pushes
+git pull                         # get others' changes</code></pre>
+  <p>The <code>-u</code> on the first push sets up tracking so future <code>git push</code>/<code>git pull</code> know where to go without arguments. (If you <code>clone</code>d, the remote and tracking are already set up for you.)</p>
+
+  <h3>pull vs fetch — the useful distinction</h3>
+  <p><code>git pull</code> is convenient (fetch + merge in one) but it merges immediately, which can surprise you with conflicts (<a class="xref" href="#ch7">Chapter 7</a>) or unexpected merges. <code>git fetch</code> downloads the remote's new commits <em>without</em> changing your working branch, so you can inspect them (<code>git log origin/main</code>) before deciding to merge or rebase. Beginners use <code>pull</code>; as you mature you may prefer <code>fetch</code> then a deliberate merge/rebase, especially on shared branches.</p>
+
+  <div class="box cmd">
+    <span class="h">Try it — push to GitHub (after Chapter 11 setup) or simulate locally</span>
+    <pre><code># If you have a GitHub repo ready (Ch 11) and auth set up (Ch 15):
+cd ~/git-practice
+git remote add origin https://github.com/YOU/git-practice.git
+git push -u origin main          # upload your history
+# later, the everyday rhythm:
+git pull                         # get any remote changes first
+# ...do work, commit...
+git push                         # share your work</code></pre>
+    The daily habit: <strong>pull before you start, push when you're done.</strong>
+  </div>
+
+  <div class="box field">
+    <span class="h">From the field — pull before you push, and push often</span>
+    Two rhythms make remote work smooth. <strong>Pull before you start working</strong> (and before you push) &mdash; get everyone else's latest changes first, so you're building on current work and resolving any small conflicts early rather than discovering a giant one later. <strong>Push often</strong> &mdash; pushing is also your off-machine backup; commits sitting only on your laptop are one spilled coffee from gone. The classic beginner failure is working in isolation for days, then trying to push a mountain of changes onto a <code>main</code> that moved on without them &mdash; a conflict nightmare. Small, frequent pull/push cycles keep you in sync and keep integrations tiny. And when a <code>push</code> is rejected with "updates were rejected" / "fetch first," it just means the remote has commits you don't &mdash; <code>git pull</code> to integrate them, then push again. That's normal collaboration, not an error.
+  </div>
+
+  <h2 class="chap" id="ch11">GitHub: The Platform <span class="n">— Chapter 11</span></h2>
+  <p class="intro">GitHub takes Git's repositories and wraps them in a platform: hosting, a web interface, collaboration tools, automation, and a social layer that hosts most of the world's open-source software. This chapter is the tour — what GitHub adds on top of Git, and how to create and navigate a repo there.</p>
+
+  <h3>What GitHub adds on top of Git</h3>
+  <p>Remember the distinction (<a class="xref" href="#ch1">Chapter 1</a>): Git is the tool, GitHub is a hosting service for Git repos. But it's far more than storage &mdash; GitHub layers a whole collaboration platform on top:</p>
+  <table>
+    <tr><th>Feature</th><th>What it adds</th></tr>
+    <tr><td><strong>Hosting</strong></td><td>Your repo in the cloud &mdash; backup, access anywhere, share with a URL</td></tr>
+    <tr><td><strong>Web interface</strong></td><td>Browse code, history, and diffs in a browser; edit files online</td></tr>
+    <tr><td><strong>Pull Requests</strong></td><td>Propose &amp; review changes before merging &mdash; the heart of collaboration (<a class="xref" href="#ch13">Ch 13</a>)</td></tr>
+    <tr><td><strong>Issues</strong></td><td>Track bugs, tasks, and discussions (<a class="xref" href="#ch14">Ch 14</a>)</td></tr>
+    <tr><td><strong>Actions</strong></td><td>Automation &amp; CI/CD &mdash; run tests/deploys on every push (<a class="xref" href="#ch18">Ch 18</a>)</td></tr>
+    <tr><td><strong>Projects / Wikis / Pages</strong></td><td>Kanban boards, documentation, and free static website hosting</td></tr>
+    <tr><td><strong>Social layer</strong></td><td>Stars, forks, followers, profiles &mdash; the "social network for code"</td></tr>
+  </table>
+  <p>Alternatives exist (GitLab, Bitbucket, Gitea) with similar features &mdash; the concepts transfer &mdash; but GitHub is the dominant one, especially for open source.</p>
+
+  <h3>Anatomy of a GitHub repository</h3>
+  <p>Open any repo on github.com and you'll find a consistent layout worth knowing: the <strong>code tab</strong> (files + the rendered <code>README.md</code> as the landing page), <strong>commit history</strong>, <strong>branches</strong> dropdown, <strong>Issues</strong> and <strong>Pull Requests</strong> tabs, <strong>Actions</strong> (CI runs), <strong>Insights</strong> (stats), and <strong>Settings</strong>. The <strong>green "Code" button</strong> gives you the clone URL (HTTPS or SSH &mdash; <a class="xref" href="#ch15">Chapter 15</a>). A good <code>README.md</code> is the front door &mdash; it's the first thing visitors (and future-you) read.</p>
+
+  <h3>Creating a repo &amp; the gh CLI</h3>
+  <p>Two ways to make a GitHub repo:</p>
+  <pre><code># 1. On the website: click "New repository", name it, choose public/private,
+#    optionally add a README/.gitignore/license, then clone or link it (Ch 10).
+
+# 2. From the terminal with the GitHub CLI (gh) -- fast once set up (Ch 15):
+gh auth login                  # one-time authentication
+gh repo create my-project --public --source=. --push   # create from current folder + push
+gh repo clone user/repo        # clone
+gh repo view --web             # open the repo in your browser</code></pre>
+  <p>The <strong><code>gh</code> CLI</strong> is GitHub's official command-line tool &mdash; it lets you create repos, open and review pull requests, manage issues, and more without leaving the terminal. It's a big productivity win once you're comfortable (and how this very book's repos were created).</p>
+
+  <h3>README, license, and the basics of a good repo</h3>
+  <ul>
+    <li><strong><code>README.md</code></strong> &mdash; written in Markdown; explains what the project is, how to install/use it, and how to contribute. The single most important file for humans.</li>
+    <li><strong>LICENSE</strong> &mdash; tells others what they're legally allowed to do with your code (MIT and Apache-2.0 are common permissive choices). <em>No license = "all rights reserved"</em>, so add one if you want others to use it.</li>
+    <li><strong><code>.gitignore</code></strong> &mdash; keeps junk (build files, secrets, dependencies) out of the repo (<a class="xref" href="#ch17">Chapter 17</a>).</li>
+  </ul>
+
+  <div class="box field">
+    <span class="h">From the field — GitHub is where your work becomes visible</span>
+    For most people GitHub is two things: a <strong>backup-and-access</strong> service (your work is safe in the cloud and reachable from any machine) and a <strong>collaboration hub</strong> (pull requests, issues, review &mdash; Part III). But there's a third, career-relevant angle worth knowing early: GitHub is also a <strong>portfolio</strong>. Your public repos and contribution history are visible to anyone, and they're increasingly part of how technical people are evaluated &mdash; a tidy repo with a clear README and clean commit history (<a class="xref" href="#ch4">Chapter 4</a>) says a lot about how you work. So treat even small personal projects with a little care: write a real README, add a license if it's public, keep commits meaningful. You don't need to be an open-source star; just having clean, public work demonstrates competence. Start by pushing your practice projects there &mdash; and learn the <code>gh</code> CLI, which makes the whole GitHub workflow as fast as the local one.
+  </div>
+
+  <h2 class="chap" id="ch12">The Collaboration Workflow <span class="n">— Chapter 12</span></h2>
+  <p class="intro">Everything so far comes together here: the standard workflow that teams and open-source projects use to work on the same codebase without chaos. Branch, push, pull request, review, merge — this loop is how modern software actually gets built.</p>
+
+  <h3>The two collaboration models</h3>
+  <p>There are two common setups, depending on whether you have write access to the repo:</p>
+  <table>
+    <tr><th>Model</th><th>When</th><th>How</th></tr>
+    <tr><td><strong>Shared repository</strong></td><td>You're on the team (have write access)</td><td>Branch directly in the repo, push your branch, open a PR</td></tr>
+    <tr><td><strong>Fork &amp; pull</strong></td><td>Contributing to a project you <em>don't</em> own (open source)</td><td>Fork the repo to your account, work there, open a PR back to the original</td></tr>
+  </table>
+  <p>A <strong>fork</strong> is your own server-side copy of someone else's repo &mdash; it lets you make changes freely (you have full control of your fork) and then <em>propose</em> them back to the original via a pull request. The original maintainer reviews and decides whether to merge. This is how open source works: thousands of strangers contribute to projects they don't control, safely.</p>
+
+  <h3>The standard feature workflow (shared repo)</h3>
+  <p>The loop you'll run constantly on a team:</p>
+  <pre><code>git switch main &amp;&amp; git pull        # 1. start from the latest main
+git switch -c feature-x            # 2. branch for your work (Ch 5)
+# ...edit, git add, git commit... (Ch 4) -- as many commits as you like
+git push -u origin feature-x       # 3. push your branch to GitHub
+# 4. open a Pull Request on GitHub (feature-x &rarr; main)  (Ch 13)
+# 5. teammates review; you address feedback with more commits + push
+# 6. PR approved &rarr; merge it on GitHub
+git switch main &amp;&amp; git pull        # 7. update local main with the merged work
+git branch -d feature-x            # 8. delete the finished branch</code></pre>
+  <p>That eight-step cycle &mdash; <em>pull, branch, work, push, PR, review, merge, clean up</em> &mdash; is the heartbeat of professional Git. Notice you never commit directly to <code>main</code>; all changes arrive via reviewed pull requests (<a class="xref" href="#ch16">Chapter 16</a>).</p>
+
+  <h3>The fork &amp; pull workflow (open source)</h3>
+  <pre><code>git clone https://github.com/YOU/their-repo.git   # clone YOUR fork (after forking on GitHub)
+cd their-repo
+git remote add upstream https://github.com/ORIGINAL/their-repo.git  # link the original
+git switch -c fix-typo             # branch
+# ...make your change, commit...
+git push origin fix-typo           # push to YOUR fork
+# open a PR from your fork's branch to the original repo (Ch 13)
+# keep your fork current later:
+git fetch upstream &amp;&amp; git merge upstream/main</code></pre>
+  <p>The extra piece here is <strong><code>upstream</code></strong> &mdash; a second remote pointing at the <em>original</em> repo, so you can pull in its updates (<code>origin</code> is your fork, <code>upstream</code> is the source). This is contributing to open source in a nutshell (<a class="xref" href="#ch19">Chapter 19</a>).</p>
+
+  <div class="box cmd">
+    <span class="h">Try it — the workflow on your own repo</span>
+    <pre><code>cd ~/git-practice                  # (with a GitHub remote set up, Ch 10/15)
+git switch main &amp;&amp; git pull
+git switch -c add-greeting          # branch
+echo "Hello, collaborators" &gt; greeting.txt
+git add . &amp;&amp; git commit -m "Add greeting"
+git push -u origin add-greeting     # push the branch
+# now open github.com, you'll see a prompt to open a Pull Request (Ch 13)
+# merge it on the site, then:
+git switch main &amp;&amp; git pull         # bring the merge down
+git branch -d add-greeting          # clean up</code></pre>
+  </div>
+
+  <div class="box field">
+    <span class="h">From the field — the workflow is the actual job</span>
+    Beginners think learning Git means learning commands; on a team, it really means learning <em>this workflow</em> &mdash; and it's remarkably consistent across nearly every company and project. Internalize the cycle (<em>pull latest, branch, commit, push, open PR, get reviewed, merge, clean up</em>) and you can drop into almost any team and be productive immediately, because they all work roughly this way (<a class="xref" href="#ch16">Chapter 16</a>). Two rules underpin it: <strong>never work directly on <code>main</code></strong> (always branch &mdash; <a class="xref" href="#ch5">Chapter 5</a>), and <strong>changes get reviewed before merging</strong> (via PRs &mdash; <a class="xref" href="#ch13">Chapter 13</a>). For open source, the fork-and-pull variant lets you contribute to projects you don't own &mdash; which is both how the software commons gets built and a great way to build a public track record (<a class="xref" href="#ch19">Chapter 19</a>). The commands you already know; this chapter is how they assemble into how real software gets made.
+  </div>
+
+  <h2 class="chap" id="ch13">Pull Requests &amp; Code Review <span class="n">— Chapter 13</span></h2>
+  <p class="intro">The pull request is GitHub's central feature and the heart of team collaboration: a proposal to merge your branch, opened up for discussion and review before it lands. Learning to open good PRs and give good reviews is as much a professional skill as writing the code.</p>
+
+  <h3>What a pull request is</h3>
+  <p>A <strong>pull request (PR)</strong> says: "here are the commits on my branch; please review them and, if they're good, merge them into the target branch." It's not a Git feature &mdash; it's a GitHub (platform) feature built on top of branches. A PR bundles: the <strong>diff</strong> (all changes), a <strong>description</strong> (what and why), a <strong>conversation</strong> (review comments, discussion), <strong>checks</strong> (automated tests via CI &mdash; <a class="xref" href="#ch18">Chapter 18</a>), and the <strong>merge button</strong>. It turns "merging code" from a silent act into a reviewable, discussable, documented event. (GitLab calls them "merge requests" &mdash; same thing.)</p>
+
+  <h3>Opening a good PR</h3>
+  <p>After you push a branch (<a class="xref" href="#ch12">Chapter 12</a>), GitHub prompts you to open a PR. A good one:</p>
+  <ul>
+    <li><strong>Has a clear title and description</strong> &mdash; what changed and <em>why</em>; link related issues (<a class="xref" href="#ch14">Chapter 14</a>) with "Closes #42" so they auto-close on merge.</li>
+    <li><strong>Is small and focused</strong> &mdash; one logical change. Reviewers do a careful job on a 50-line PR and a rubber-stamp on a 2,000-line one.</li>
+    <li><strong>Has clean commits</strong> &mdash; tidy your branch first if needed (<code>rebase -i</code> &mdash; <a class="xref" href="#ch8">Chapter 8</a>).</li>
+    <li><strong>Passes its checks</strong> &mdash; green CI before asking for review.</li>
+  </ul>
+  <pre><code># open a PR from the terminal with the gh CLI (Ch 15):
+gh pr create --title "Add login timeout" --body "Fixes the hang described in #42"
+gh pr status            # PRs involving you
+gh pr view --web        # open it in the browser
+gh pr checkout 123      # check out someone else's PR locally to test it</code></pre>
+
+  <h3>The review</h3>
+  <p>Reviewers read the diff and leave feedback: <strong>line comments</strong> (on specific lines), an overall <strong>review</strong> with a verdict &mdash; <em>Approve</em>, <em>Request changes</em>, or <em>Comment</em> &mdash; and suggestions you can sometimes apply with one click. You respond by pushing <em>more commits</em> to the same branch (they appear in the PR automatically) and replying to comments. Once approved (and checks pass), someone clicks <strong>Merge</strong>. GitHub offers merge styles: a regular <em>merge commit</em>, <em>squash and merge</em> (combine all PR commits into one &mdash; popular for clean history), or <em>rebase and merge</em> (<a class="xref" href="#ch16">Chapter 16</a>).</p>
+
+  <h3>Giving good reviews</h3>
+  <p>Reviewing is a skill: <strong>be kind and specific</strong> (comment on the code, not the person; explain <em>why</em>), <strong>distinguish must-fix from nitpick</strong> (prefix optional comments with "nit:"), <strong>ask questions</strong> rather than demand ("could this be null here?"), and <strong>approve generously</strong> when it's good enough &mdash; perfect is the enemy of shipped. A review is a conversation to improve the code together, not a gate to prove superiority.</p>
+
+  <div class="box field">
+    <span class="h">From the field — small PRs and kind reviews make teams fast</span>
+    Two truths about PRs that take people years to learn. First, <strong>small PRs get better reviews and merge faster.</strong> A focused 50-line change gets genuine scrutiny and a quick approval; a sprawling 2,000-line PR gets a glance and a reluctant "LGTM" because no human can review it well &mdash; so bugs slip through and it sits for days. Keep PRs small and single-purpose, even if it means splitting your work into several (<a class="xref" href="#ch12">Chapter 12</a>). Second, <strong>code review is about the code, never the person.</strong> The best teams review warmly &mdash; specific, curious, generous &mdash; and it makes everyone better and the codebase stronger; toxic nitpicky review just makes people defensive and slow. Whether you're opening PRs or reviewing them, you're participating in the core ritual of professional software, and doing it well (small, clear, kind) marks you as someone good to work with &mdash; which matters as much as the code itself.
+  </div>
+
+  <h2 class="chap" id="ch14">Issues &amp; Project Management <span class="n">— Chapter 14</span></h2>
+  <p class="intro">GitHub isn't just code — it's where the work *around* the code gets organized. Issues track bugs and tasks, labels and milestones organize them, and Projects turn them into boards. This is how teams (and solo developers) plan and coordinate.</p>
+
+  <h3>Issues — the unit of work</h3>
+  <p>An <strong>issue</strong> is a tracked item: a bug report, a feature request, a task, or a discussion. Each has a title, a description (Markdown), a number (<code>#42</code>), a status (open/closed), and a conversation thread. Issues are how a project says "here's what needs doing and what's wrong." Good practice: one issue per discrete problem or task, with a clear title and enough detail to act on (for bugs: steps to reproduce, expected vs actual).</p>
+  <table>
+    <tr><th>Feature</th><th>Use</th></tr>
+    <tr><td><strong>Labels</strong></td><td>Categorize: <code>bug</code>, <code>enhancement</code>, <code>good first issue</code>, <code>priority:high</code></td></tr>
+    <tr><td><strong>Assignees</strong></td><td>Who's responsible</td></tr>
+    <tr><td><strong>Milestones</strong></td><td>Group issues toward a release/deadline</td></tr>
+    <tr><td><strong>Comments / @mentions</strong></td><td>Discuss; notify people with <code>@username</code></td></tr>
+    <tr><td><strong>Templates</strong></td><td>Pre-fill bug/feature forms so reports are complete</td></tr>
+  </table>
+
+  <h3>Issues + commits + PRs: the magic links</h3>
+  <p>The pieces connect, which is what makes GitHub a project tool and not just a tracker. Reference an issue from a commit or PR with <code>#number</code>, and use <strong>closing keywords</strong> to auto-close it on merge:</p>
+  <pre><code>git commit -m "Fix null check in parser (refs #42)"   # links to issue 42
+# in a PR description or commit:  "Closes #42"  /  "Fixes #42"  /  "Resolves #42"
+# &rarr; when that PR merges, issue #42 closes automatically and links the PR to it</code></pre>
+  <p>So the lifecycle ties together: file an <em>issue</em> &rarr; create a <em>branch</em> to fix it &rarr; open a <em>PR</em> that says "Closes #42" &rarr; review and merge &rarr; the issue closes itself, with a permanent trail linking the bug, the discussion, the code change, and the merge. That traceability is gold months later when someone asks "why was this changed?"</p>
+
+  <h3>Projects, Discussions, Wikis</h3>
+  <ul>
+    <li><strong>Projects</strong> &mdash; Kanban-style boards (Todo / In Progress / Done) and tables built from your issues and PRs, for planning and tracking work visually. The lightweight project-management layer.</li>
+    <li><strong>Discussions</strong> &mdash; forum-style threads for Q&amp;A and open-ended conversation that aren't actionable "issues."</li>
+    <li><strong>Wiki</strong> &mdash; longer-form documentation living alongside the repo.</li>
+    <li><strong>Milestones</strong> &mdash; bundle issues/PRs toward a version or date and track progress.</li>
+  </ul>
+
+  <pre><code># manage issues from the terminal with gh (Ch 15):
+gh issue create --title "Login hangs on timeout" --body "Steps: ..."
+gh issue list --label bug
+gh issue view 42
+gh issue close 42</code></pre>
+
+  <div class="box field">
+    <span class="h">From the field — issues turn "stuff in my head" into shared, trackable work</span>
+    Even solo, issues are worth using: they're where you offload "things to do / things that are broken" so they're not rattling around your head or lost in a notes file &mdash; and your future self gets a clear, prioritized list. On a team they're essential: issues are the shared source of truth for <em>what</em> the work is, while PRs (<a class="xref" href="#ch13">Chapter 13</a>) are <em>how</em> it gets done, and the <code>#number</code> links weave them into a traceable history. The habit that pays off most: <strong>connect everything</strong> &mdash; reference the issue in your branch name and PR, use "Closes #N" so merging a fix closes the bug automatically. Six months later when someone asks "why does this code do X?", the trail &mdash; issue &rarr; discussion &rarr; PR &rarr; merge &mdash; answers it instantly. And for getting into open source (<a class="xref" href="#ch19">Chapter 19</a>), the <code>good first issue</code> label is your on-ramp: maintainers tag beginner-friendly tasks there specifically to welcome new contributors.
+  </div>
+
+  <h2 class="chap" id="ch15">Authentication <span class="n">— Chapter 15</span></h2>
+  <p class="intro">"Why does GitHub keep rejecting my password?" is the first wall almost everyone hits. GitHub stopped accepting passwords for Git operations years ago — you authenticate with SSH keys, a personal access token, or the gh CLI. Here's how to set it up once and never think about it again.</p>
+
+  <h3>Why your password doesn't work</h3>
+  <p>Since 2021, GitHub <strong>no longer accepts your account password</strong> for Git operations over HTTPS (it was insecure and phishable). Instead you use one of three modern methods. Pick one, set it up once, done:</p>
+  <table>
+    <tr><th>Method</th><th>Best for</th></tr>
+    <tr><td><strong>SSH keys</strong></td><td>The classic developer choice &mdash; set up once, no tokens to manage</td></tr>
+    <tr><td><strong>Personal Access Token (PAT)</strong></td><td>HTTPS users; also for scripts/CI &mdash; a token used <em>instead</em> of a password</td></tr>
+    <tr><td><strong>gh CLI / Git Credential Manager</strong></td><td>Easiest &mdash; handles auth for you</td></tr>
+  </table>
+
+  <h3>Option 1: SSH keys (recommended)</h3>
+  <p>The same key-pair system from the <a class="xref" href="Linux_Field_Guide.html#ch21">Linux Field Guide</a>: a private key stays on your machine, the public key goes on GitHub, and they prove your identity with no password typed:</p>
+  <pre><code>ssh-keygen -t ed25519 -C "you@example.com"   # generate a key pair (Enter for defaults)
+cat ~/.ssh/id_ed25519.pub                    # copy this PUBLIC key
+# paste it on GitHub: Settings &rarr; SSH and GPG keys &rarr; New SSH key
+ssh -T git@github.com                        # test it ("Hi USER! ...")
+# then use SSH clone URLs:
+git clone git@github.com:user/repo.git       # note: git@github.com, not https://</code></pre>
+  <p>Use the <strong>SSH URL</strong> (<code>git@github.com:...</code>) for repos, not the HTTPS one, and your private key authenticates automatically. The one gotcha from the Linux guide applies: SSH needs tight permissions &mdash; <code>~/.ssh</code> at <code>700</code>, the private key at <code>600</code> &mdash; or it silently ignores the key.</p>
+
+  <h3>Option 2: Personal Access Token (PAT)</h3>
+  <p>If you prefer HTTPS, generate a <strong>token</strong> on GitHub (Settings &rarr; Developer settings &rarr; Personal access tokens) and use it <em>as your password</em> when Git prompts:</p>
+  <pre><code>git clone https://github.com/user/repo.git
+# Username: your-username
+# Password: PASTE THE TOKEN (not your account password)</code></pre>
+  <p>Use <strong>fine-grained tokens</strong> scoped to only the repos and permissions needed, and set an expiry. Tokens are also how <em>scripts and CI</em> authenticate (<a class="xref" href="#ch18">Chapter 18</a>). Treat a token like a password &mdash; it's a secret (<a class="xref" href="#ch20">Chapter 20</a>).</p>
+
+  <h3>Option 3: gh CLI / credential helper (easiest)</h3>
+  <pre><code>gh auth login            # walks you through it; sets up Git auth automatically
+# or let Git remember an HTTPS token via the OS credential store:
+git config --global credential.helper store     # (or "manager" on Windows/Mac)</code></pre>
+  <p>The <strong><code>gh</code> CLI</strong> (<a class="xref" href="#ch11">Chapter 11</a>) is the simplest path: <code>gh auth login</code> handles everything, including configuring Git to use its credentials, so <code>git push</code>/<code>pull</code> just work. The <strong>Git Credential Manager</strong> (bundled with Git for Windows/macOS) caches your token securely so you enter it once.</p>
+
+  <div class="box danger">
+    <span class="h">Never commit secrets — tokens, keys, passwords</span>
+    A token or SSH private key is a credential to your account &mdash; guard it like a password. The classic, costly mistake: <strong>accidentally committing a secret</strong> (a token, an API key, a password in a config file) and pushing it to a public repo, where bots scrape it within <em>minutes</em>. If it happens: revoke the secret immediately (it's compromised the instant it's pushed &mdash; removing it from history isn't enough), then rotate it. Prevent it with <code>.gitignore</code> for secret files (<a class="xref" href="#ch17">Chapter 17</a>), never hard-coding secrets, and GitHub's secret-scanning/push-protection (<a class="xref" href="#ch20">Chapter 20</a>). Your private SSH key (<code>id_ed25519</code>) must <em>never</em> leave your machine &mdash; only ever share the <code>.pub</code>.
+  </div>
+
+  <div class="box field">
+    <span class="h">From the field — set up SSH once, then forget about auth</span>
+    The authentication wall frustrates every beginner ("my password doesn't work!"), but it's a one-time setup. The advice: <strong>set up SSH keys</strong> (or run <code>gh auth login</code>) once, and you'll never type a credential for Git again &mdash; pushes and pulls just work. If a key "isn't working," check permissions first (<a class="xref" href="Linux_Field_Guide.html#ch21">Linux Field Guide</a>'s gotcha: <code>~/.ssh</code> = 700, key = 600). The same SSH key works across GitHub, GitLab, and most cloud platforms, so the setup pays off everywhere. For automation and CI (<a class="xref" href="#ch18">Chapter 18</a>), use scoped, expiring tokens rather than your personal credentials. And burn this in: <strong>secrets never go in commits</strong> &mdash; the single most common way people get compromised on GitHub is pushing a key or token to a public repo, where it's harvested almost instantly. Set auth up properly once, keep secrets out of Git, and authentication becomes invisible.
+  </div>
+
+  <h2 class="part-divider" id="partIV">Part IV — Collaboration at Scale</h2>
+
+  <h2 class="chap" id="ch16">Branching Strategies <span class="n">— Chapter 16</span></h2>
+  <p class="intro">Once a team shares a repo, you need agreed rules for how branches are used — a "branching strategy." It's less about Git mechanics and more about team convention. Knowing the common models lets you fit into any team's workflow quickly.</p>
+
+  <h3>Why a strategy matters</h3>
+  <p>Git lets you branch however you like, but a <em>team</em> needs everyone branching the <em>same</em> way, or chaos ensues &mdash; people stepping on each other, unclear what's deployable, messy history. A branching strategy answers: What's <code>main</code> for? Where does new work go? How does it get released? Teams pick a convention and stick to it. Here are the common ones, simplest first.</p>
+
+  <h3>GitHub Flow — simple and the most common</h3>
+  <p>The dominant model for most teams and continuous deployment. The rules are minimal:</p>
+  <ul>
+    <li><strong><code>main</code> is always deployable</strong> &mdash; it always works and can ship at any time.</li>
+    <li><strong>Branch off <code>main</code> for every change</strong> (feature/fix), with a descriptive name.</li>
+    <li><strong>Open a PR</strong>, get it reviewed, ensure CI passes (<a class="xref" href="#ch13">Chapter 13</a>, <a class="xref" href="#ch18">18</a>).</li>
+    <li><strong>Merge to <code>main</code> and deploy.</strong> Delete the branch.</li>
+  </ul>
+  <p>That's it &mdash; short-lived branches, frequent merges, <code>main</code> always green. If you learn one model, learn this; it's what this whole book's workflow (<a class="xref" href="#ch12">Chapter 12</a>) has been teaching.</p>
+
+  <h3>The other models you'll meet</h3>
+  <table>
+    <tr><th>Model</th><th>Shape</th><th>When</th></tr>
+    <tr><td><strong>GitHub Flow</strong></td><td>main + short feature branches</td><td>Most teams; web apps; continuous deployment</td></tr>
+    <tr><td><strong>Git Flow</strong></td><td>main + develop + feature/release/hotfix branches</td><td>Scheduled releases, versioned software; heavier &mdash; falling out of favor</td></tr>
+    <tr><td><strong>Trunk-based</strong></td><td>Everyone commits to main very frequently (tiny branches or direct, behind feature flags)</td><td>High-velocity teams with strong CI</td></tr>
+    <tr><td><strong>Environment branches</strong></td><td>main + staging + production branches</td><td>Deploy-by-branch setups</td></tr>
+  </table>
+  <p><strong>Git Flow</strong> (a more elaborate model with long-lived <code>develop</code> and <code>release</code> branches) was popular for versioned/desktop software but is heavy for modern web development; you'll still encounter it. <strong>Trunk-based</strong> goes the other way &mdash; minimal branching, integrate constantly, hide unfinished work behind feature flags &mdash; favored by teams with excellent automated testing.</p>
+
+  <h3>Naming &amp; protection conventions</h3>
+  <ul>
+    <li><strong>Branch names:</strong> descriptive, often prefixed &mdash; <code>feature/login-timeout</code>, <code>fix/null-parser</code>, <code>chore/update-deps</code>. Some teams include the issue number (<code>feature/42-login</code>).</li>
+    <li><strong>Protected branches:</strong> GitHub can <em>enforce</em> the strategy &mdash; require PRs and reviews before merging to <code>main</code>, require CI to pass, block force-pushes. This turns convention into a guarantee (<a class="xref" href="#ch20">Chapter 20</a>).</li>
+    <li><strong>Merge style:</strong> teams pick one &mdash; squash-merge (clean, one commit per PR), merge commit (preserves branch structure), or rebase-merge (linear) (<a class="xref" href="#ch6">Chapter 6</a>, <a class="xref" href="#ch8">8</a>).</li>
+  </ul>
+
+  <div class="box field">
+    <span class="h">From the field — learn GitHub Flow, then adapt to the team</span>
+    Don't overthink branching strategies. For the vast majority of work &mdash; personal projects, startups, web apps, open source &mdash; <strong>GitHub Flow is the answer</strong>: <code>main</code> always works, branch for each change, PR + review, merge, deploy, repeat. It's simple, it scales surprisingly far, and it's what this book has been teaching all along (<a class="xref" href="#ch12">Chapter 12</a>). The reason to know the others is that when you join a team, they'll have <em>their</em> convention &mdash; maybe Git Flow at an enterprise with quarterly releases, maybe trunk-based at a high-velocity shop &mdash; and you'll want to recognize it and fit in fast rather than impose your own. The mechanics are identical (it's all branches, PRs, and merges from earlier chapters); the strategy is just the team's agreement about <em>how</em> to use them. Ask "what's our branching model and merge style?" on day one of any new team, follow it, and you'll slot in smoothly. And on your own repos, keep it simple: GitHub Flow, protected <code>main</code>, done.
+  </div>
+
+  <h2 class="chap" id="ch17">.gitignore &amp; Git LFS <span class="n">— Chapter 17</span></h2>
+  <p class="intro">Not everything belongs in version control. .gitignore keeps junk and secrets out of your repo, and Git LFS handles the large binary files Git was never designed for. Getting these right keeps repos clean, small, and safe.</p>
+
+  <h3>.gitignore — what to leave out</h3>
+  <p>A repo should contain your <em>source</em> &mdash; the things you write &mdash; not generated, downloaded, or secret files. <strong><code>.gitignore</code></strong> is a file listing patterns Git should ignore (never track). What to ignore:</p>
+  <table>
+    <tr><th>Don't commit</th><th>Examples</th></tr>
+    <tr><td><strong>Dependencies</strong></td><td><code>node_modules/</code>, <code>venv/</code>, <code>vendor/</code> &mdash; re-installable, huge</td></tr>
+    <tr><td><strong>Build output</strong></td><td><code>dist/</code>, <code>build/</code>, <code>*.o</code>, <code>target/</code> &mdash; regenerated from source</td></tr>
+    <tr><td><strong>Secrets</strong></td><td><code>.env</code>, <code>*.key</code>, <code>credentials.json</code> &mdash; <em>never</em> in Git (<a class="xref" href="#ch20">Ch 20</a>)</td></tr>
+    <tr><td><strong>OS / editor cruft</strong></td><td><code>.DS_Store</code>, <code>Thumbs.db</code>, <code>.idea/</code>, <code>.vscode/</code></td></tr>
+    <tr><td><strong>Logs &amp; temp</strong></td><td><code>*.log</code>, <code>tmp/</code>, caches</td></tr>
+    <tr><td><strong>Large binaries</strong></td><td>(use LFS instead &mdash; below)</td></tr>
+  </table>
+  <pre><code># a .gitignore file (in the repo root):
+node_modules/
+dist/
+*.log
+.env
+.DS_Store
+*.key
+# negation: track a file even though its pattern is ignored
+!important.log</code></pre>
+  <p>Patterns work like shell globs (<a class="xref" href="Linux_Field_Guide.html#ch7">Linux Field Guide</a>): <code>*.log</code> (all logs), <code>dir/</code> (a whole directory), <code>!file</code> (un-ignore). GitHub offers ready-made <code>.gitignore</code> templates per language when you create a repo &mdash; start from those.</p>
+
+  <h3>The "already tracked" gotcha</h3>
+  <p><code>.gitignore</code> only ignores files Git <em>isn't already tracking</em>. If you committed <code>node_modules/</code> before adding it to <code>.gitignore</code>, it stays tracked. To fix, stop tracking it (while keeping it on disk) then commit:</p>
+  <pre><code>git rm -r --cached node_modules/    # untrack but keep the files locally
+echo "node_modules/" &gt;&gt; .gitignore
+git commit -m "Stop tracking node_modules"</code></pre>
+
+  <h3>Git LFS — for large binary files</h3>
+  <p>Git was built for <em>text</em> &mdash; it diffs and stores text changes brilliantly, but it handles large <em>binary</em> files (videos, datasets, big images, design files, game assets) badly: every version of a 100 MB file bloats the repo permanently, and binaries don't diff. <strong>Git Large File Storage (LFS)</strong> solves this by storing big files <em>outside</em> the normal repo and keeping just a small pointer in Git:</p>
+  <pre><code>git lfs install                # one-time setup
+git lfs track "*.psd"          # tell LFS to handle these (writes to .gitattributes)
+git lfs track "*.mp4"
+git add .gitattributes
+git add design.psd &amp;&amp; git commit -m "Add design file via LFS"</code></pre>
+  <p>Now the big file is stored in LFS; the repo stays lean. (GitHub provides LFS storage with quotas.) Use it whenever a project must version large binaries. The related <code>.gitattributes</code> file also controls things like line-ending normalization &mdash; useful on cross-platform teams.</p>
+
+  <div class="box field">
+    <span class="h">From the field — set up .gitignore first, and keep binaries out (or in LFS)</span>
+    Two habits keep repos healthy. <strong>Add a <code>.gitignore</code> before your first commit</strong> &mdash; start from GitHub's language template &mdash; so you never accidentally track <code>node_modules</code>, build output, or a <code>.env</code> full of secrets. The "I committed it before ignoring it" cleanup (above) is annoying and, for secrets, dangerous (<a class="xref" href="#ch20">Chapter 20</a>) &mdash; far better to ignore from the start. <strong>And keep big binaries out of plain Git.</strong> A repo that's slow to clone is almost always one where someone committed large files (or a <code>node_modules</code>), bloating the history <em>permanently</em> &mdash; even deleting the file later doesn't shrink the repo, because every past version is still stored. If a project genuinely needs to version large assets, use LFS from the start. Lean repos clone fast, stay cheap, and don't leak secrets &mdash; and it all starts with a good <code>.gitignore</code> on day one.
+  </div>
+
+  <h2 class="chap" id="ch18">GitHub Actions (CI/CD) <span class="n">— Chapter 18</span></h2>
+  <p class="intro">GitHub Actions automates work that happens around your code: run tests on every push, check formatting, build, and deploy — automatically. It's GitHub's built-in CI/CD, and a basic understanding turns "I hope it works" into "the robots checked it."</p>
+
+  <h3>What CI/CD means</h3>
+  <p><strong>CI (Continuous Integration)</strong> = automatically build and test your code every time it changes, so problems are caught immediately rather than days later. <strong>CD (Continuous Delivery/Deployment)</strong> = automatically ship the tested code to staging or production. <strong>GitHub Actions</strong> is the engine that runs these workflows for you, triggered by events in your repo (a push, a PR, a schedule). The payoff: every change is automatically verified, and the green/red check on a PR (<a class="xref" href="#ch13">Chapter 13</a>) tells reviewers at a glance whether it's safe.</p>
+
+  <h3>How Actions is structured</h3>
+  <table>
+    <tr><th>Concept</th><th>Is</th></tr>
+    <tr><td><strong>Workflow</strong></td><td>A YAML file in <code>.github/workflows/</code> describing automation</td></tr>
+    <tr><td><strong>Event (trigger)</strong></td><td>What starts it: <code>push</code>, <code>pull_request</code>, <code>schedule</code>, manual</td></tr>
+    <tr><td><strong>Job</strong></td><td>A set of steps that run on a fresh virtual machine ("runner")</td></tr>
+    <tr><td><strong>Step</strong></td><td>A single task: run a command, or use a prebuilt <strong>Action</strong></td></tr>
+    <tr><td><strong>Action</strong></td><td>A reusable building block (e.g. "checkout the code", "set up Python")</td></tr>
+  </table>
+
+  <h3>A simple workflow</h3>
+  <p>Drop a YAML file in <code>.github/workflows/</code> and GitHub runs it automatically. This one runs tests on every push and PR:</p>
+  <pre><code># .github/workflows/ci.yml
+name: CI
+on: [push, pull_request]          # triggers
+jobs:
+  test:
+    runs-on: ubuntu-latest         # a fresh Linux VM (Linux Field Guide!)
+    steps:
+      - uses: actions/checkout@v4         # get your code
+      - uses: actions/setup-node@v4       # install Node (or setup-python, etc.)
+        with:
+          node-version: '20'
+      - run: npm install                  # your commands...
+      - run: npm test                     # ...run the tests</code></pre>
+  <p>Commit that, push, and the <strong>Actions tab</strong> shows it running; the result becomes a check on your commits and PRs. The marketplace has thousands of prebuilt <strong>Actions</strong> (<code>uses:</code>) so you rarely script from scratch &mdash; checkout, language setup, linting, deploys, releases.</p>
+
+  <h3>What teams automate</h3>
+  <ul>
+    <li><strong>Run the test suite</strong> on every push/PR &mdash; the most common use; catches breakage instantly.</li>
+    <li><strong>Lint &amp; format checks</strong> &mdash; enforce code style automatically.</li>
+    <li><strong>Build</strong> the app/artifacts and store them.</li>
+    <li><strong>Deploy</strong> to staging/production on merge to <code>main</code> (CD).</li>
+    <li><strong>Security scans</strong> &mdash; dependency and secret scanning (<a class="xref" href="#ch20">Chapter 20</a>).</li>
+    <li><strong>Scheduled jobs</strong> &mdash; nightly tasks, dependency updates.</li>
+  </ul>
+
+  <div class="box warn">
+    <span class="h">Secrets in Actions, and runner safety</span>
+    Workflows often need credentials (to deploy, to push to a registry). <strong>Never hard-code these in the YAML</strong> &mdash; the file is in your repo. Use GitHub's encrypted <strong>repository secrets</strong> (Settings &rarr; Secrets) and reference them as <code>$&#123;&#123; secrets.MY_TOKEN &#125;&#125;</code> (<a class="xref" href="#ch20">Chapter 20</a>). Two more cautions: be careful enabling Actions on <em>untrusted</em> PRs (a fork's workflow could try to steal secrets &mdash; GitHub has protections, but know the risk), and pin third-party Actions to a specific version/SHA rather than a moving tag, since you're running someone else's code in your pipeline.
+  </div>
+
+  <div class="box field">
+    <span class="h">From the field — even one CI workflow changes everything</span>
+    You don't need to be a DevOps expert to benefit from Actions &mdash; a single "run the tests on every push" workflow is transformative. Suddenly every change is automatically checked, broken code can't quietly slip into <code>main</code>, and the green check on a PR (<a class="xref" href="#ch13">Chapter 13</a>) gives everyone confidence to merge. It also catches the eternal "works on my machine" problem, because the tests run on a clean VM, not your customized setup. Start tiny: add a workflow that just runs your test command, watch it go green on the Actions tab, then grow it (linting, build, eventually deploy) as you need. The barrier is low &mdash; copy a starter workflow for your language, commit it, done &mdash; and the payoff is huge: automated verification is one of the biggest quality multipliers in software, and it's built right into GitHub. Combine it with protected branches (require checks to pass before merge &mdash; <a class="xref" href="#ch16">Chapter 16</a>, <a class="xref" href="#ch20">20</a>) and you've got a real safety net.
+  </div>
+
+  <h2 class="chap" id="ch19">Open Source <span class="n">— Chapter 19</span></h2>
+  <p class="intro">GitHub is where open source lives, and contributing to it is one of the best ways to learn, build a public reputation, and give back. It's also less intimidating than it looks — your first contribution can be fixing a typo. This chapter is how to participate, as a contributor and eventually a maintainer.</p>
+
+  <h3>What open source is (and the license point)</h3>
+  <p><strong>Open source</strong> software has source code anyone can read, use, modify, and share, under a <strong>license</strong> that grants those rights (<a class="xref" href="#ch11">Chapter 11</a>). Common licenses: <strong>MIT</strong> / <strong>Apache-2.0</strong> / <strong>BSD</strong> (permissive &mdash; do almost anything, just keep the notice) and <strong>GPL</strong> (copyleft &mdash; derivatives must also be open). The license matters: <em>no license means "all rights reserved"</em> &mdash; you can look but legally can't reuse it. Add a license to your own projects if you want others to use them, and check a project's license before depending on it.</p>
+
+  <h3>Contributing — the fork &amp; pull workflow</h3>
+  <p>You contribute to a project you don't own via fork-and-pull (<a class="xref" href="#ch12">Chapter 12</a>):</p>
+  <ol>
+    <li><strong>Find something to do</strong> &mdash; look for the <code>good first issue</code> or <code>help wanted</code> labels (<a class="xref" href="#ch14">Chapter 14</a>); maintainers tag beginner-friendly tasks there on purpose.</li>
+    <li><strong>Read CONTRIBUTING.md</strong> &mdash; many projects document how they want contributions (style, tests, PR format). Follow it.</li>
+    <li><strong>Fork</strong> the repo, <strong>clone</strong> your fork, <strong>branch</strong> for the change.</li>
+    <li><strong>Make the change</strong>, commit with a clear message (<a class="xref" href="#ch4">Chapter 4</a>), push to your fork.</li>
+    <li><strong>Open a PR</strong> to the original repo, describing what and why (<a class="xref" href="#ch13">Chapter 13</a>); link the issue with "Closes #N".</li>
+    <li><strong>Respond to review</strong> graciously &mdash; maintainers may ask for changes; push more commits to update the PR.</li>
+  </ol>
+  <pre><code># after forking on GitHub:
+git clone git@github.com:YOU/project.git &amp;&amp; cd project
+git remote add upstream git@github.com:ORIGINAL/project.git   # track the source
+git switch -c fix-readme-typo
+# ...make the change, commit...
+git push origin fix-readme-typo
+# open the PR on GitHub; later keep your fork fresh:
+git fetch upstream &amp;&amp; git switch main &amp;&amp; git merge upstream/main</code></pre>
+
+  <h3>Your first contribution can be tiny</h3>
+  <p>Open source has a reputation for being intimidating &mdash; but the on-ramp is gentle. <strong>Documentation fixes count</strong>: a typo, a broken link, a clearer sentence in the README, a missing setup step. These are real, welcomed contributions and a perfect first PR &mdash; you learn the whole workflow (fork &rarr; branch &rarr; PR &rarr; review &rarr; merge) on something low-stakes. From there, work up to small bug fixes, then features. Every prolific open-source contributor started with a first nervous PR.</p>
+
+  <h3>Becoming a maintainer</h3>
+  <p>The other side: running a project others contribute to. A welcoming, well-run repo has a clear <strong>README</strong> (what/why/how), <strong>CONTRIBUTING.md</strong> (how to help), a <strong>LICENSE</strong>, a <strong>CODE_OF_CONDUCT</strong>, issue/PR <strong>templates</strong> (<a class="xref" href="#ch14">Chapter 14</a>), and CI that checks PRs automatically (<a class="xref" href="#ch18">Chapter 18</a>). As a maintainer you review PRs kindly (<a class="xref" href="#ch13">Chapter 13</a>), tag <code>good first issue</code>s to invite newcomers, and remember contributors are volunteers giving you their time &mdash; gratitude and responsiveness keep a community alive.</p>
+
+  <div class="box field">
+    <span class="h">From the field — contributing is the best way to learn, and a real portfolio</span>
+    Open source gives you three things at once that are hard to get otherwise. <strong>You learn from real codebases</strong> &mdash; reading and modifying production code written by experienced people teaches more than any tutorial. <strong>You build a public track record</strong> &mdash; merged PRs on real projects are visible proof of skill that employers genuinely value (<a class="xref" href="#ch11">Chapter 11</a>), far more than a private repo of toy projects. <strong>And you give back</strong> to the software commons everyone depends on. The barrier is mostly psychological: people imagine they need to be experts, when maintainers are often <em>desperate</em> for help with docs, small bugs, and triage. Start with one tiny PR &mdash; fix a typo in a project's README, properly, via the full workflow &mdash; and you'll have done the scariest part (the first one). The rest is just repetition with growing confidence. The skills from this entire book exist precisely so you can do this; go put them to use on something real.
+  </div>
+
+  <h2 class="chap" id="ch20">Security <span class="n">— Chapter 20</span></h2>
+  <p class="intro">Version control and code hosting come with real security responsibilities — the most common and most painful being leaked secrets. This chapter is the practical security hygiene every Git/GitHub user needs, plus the platform features that protect your code and your account.</p>
+
+  <h3>The #1 risk: leaked secrets</h3>
+  <p>The single most common Git security disaster is <strong>committing a secret</strong> &mdash; an API key, password, token (<a class="xref" href="#ch15">Chapter 15</a>), or private key &mdash; and pushing it, especially to a public repo where automated bots find and abuse it within <em>minutes</em>. The critical thing to understand: <strong>once a secret is committed, it's in the history forever</strong>, even if you delete the file in a later commit (<a class="xref" href="#ch9">Chapter 9</a> &mdash; the old commit still contains it). Removing it from history is painful and incomplete. So:</p>
+  <div class="box danger">
+    <span class="h">If you leak a secret: rotate first, scrub second</span>
+    Assume any secret that was <em>ever</em> pushed is compromised the instant it landed &mdash; bots scrape public GitHub continuously. So the order is: <strong>(1) immediately revoke/rotate the secret</strong> at its source (regenerate the API key, change the password, revoke the token) &mdash; this makes the leaked copy useless and is the only step that truly protects you. <strong>(2) Then</strong> remove it from history if you must (tools like <code>git filter-repo</code> or BFG rewrite history &mdash; disruptive, and pointless if you skipped step 1). Don't waste time scrubbing history while the live secret is still valid. Prevent it entirely: <code>.gitignore</code> your secret files (<a class="xref" href="#ch17">Chapter 17</a>), never hard-code credentials, and use environment variables or a secrets manager.
+  </div>
+
+  <h3>Protecting your account &amp; code</h3>
+  <table>
+    <tr><th>Protection</th><th>What it does</th></tr>
+    <tr><td><strong>2FA on your account</strong></td><td>Two-factor auth &mdash; essential; GitHub now requires it for many users</td></tr>
+    <tr><td><strong>SSH keys / scoped tokens</strong></td><td>Strong auth; least-privilege tokens (<a class="xref" href="#ch15">Ch 15</a>)</td></tr>
+    <tr><td><strong>Secret scanning + push protection</strong></td><td>GitHub detects known secret formats and can <em>block the push</em> before a secret lands &mdash; turn it on</td></tr>
+    <tr><td><strong>Branch protection</strong></td><td>Require PRs, reviews, and passing CI before merging to <code>main</code>; block force-push (<a class="xref" href="#ch16">Ch 16</a>)</td></tr>
+    <tr><td><strong>Dependabot</strong></td><td>Alerts &amp; auto-PRs for vulnerable dependencies in your project</td></tr>
+    <tr><td><strong>Code scanning (CodeQL)</strong></td><td>Automated security analysis of your code in CI (<a class="xref" href="#ch18">Ch 18</a>)</td></tr>
+  </table>
+
+  <h3>Signed commits — proving authorship</h3>
+  <p>Remember that the name/email on a commit are <em>unverified</em> labels (<a class="xref" href="#ch3">Chapter 3</a>) &mdash; anyone can set yours and commit as "you." <strong>Signed commits</strong> fix this: you cryptographically sign commits with a GPG or SSH key, and GitHub shows a <strong>"Verified"</strong> badge proving the commit genuinely came from you. It matters for high-trust projects and protecting your identity:</p>
+  <pre><code>git config --global commit.gpgsign true     # sign commits by default
+git config --global user.signingkey KEY     # your signing key (GPG or SSH)
+# then add the public key to GitHub (Settings &rarr; SSH and GPG keys) for the Verified badge</code></pre>
+
+  <h3>Dependencies &amp; supply chain</h3>
+  <p>Most projects pull in many third-party packages, and a vulnerability (or malicious package) in any of them affects you &mdash; the "supply chain" risk. Practical hygiene: keep dependencies updated (<strong>Dependabot</strong> automates the PRs), review what you add (don't install random packages casually), pin versions for reproducibility, and watch the security alerts GitHub surfaces. This is the same patch-and-vet discipline from the <span class="xref-offsite" title="Covered in another Field Guide, not published on this site">Server Admin &amp; Security Guide</span> and <span class="xref-offsite" title="Covered in another Field Guide, not published on this site">Red Team Guide</span>, applied to your code's dependencies.</p>
+
+  <div class="box field">
+    <span class="h">From the field — keep secrets out, turn on the free protections</span>
+    The overwhelming majority of Git/GitHub security incidents for individuals come down to one thing: <strong>a secret got committed.</strong> So internalize the prevention &mdash; <em>secrets never go in Git</em> (use <code>.gitignore</code> and environment variables, <a class="xref" href="#ch17">Chapter 17</a>) &mdash; and the response &mdash; <em>if one leaks, rotate it immediately</em>, because it's compromised the moment it's pushed. Everything else is turning on protections GitHub gives you for free: enable <strong>2FA</strong> on your account today (non-negotiable), turn on <strong>secret-scanning push protection</strong> (it'll literally stop you from pushing a detected key), enable <strong>Dependabot</strong> for vulnerable-dependency alerts, and <strong>protect <code>main</code></strong> so changes can't bypass review (<a class="xref" href="#ch16">Chapter 16</a>). None of this requires expertise &mdash; it's a few toggles in repo/account settings &mdash; and it prevents the great majority of real-world incidents. Good Git security is mostly good hygiene done consistently.
+  </div>
+
+  <h2 class="part-divider" id="partV">Part V — Power &amp; Recovery</h2>
+
+  <h2 class="chap" id="ch21">Advanced Git <span class="n">— Chapter 21</span></h2>
+  <p class="intro">A grab-bag of powerful commands that solve specific real problems: stashing work-in-progress, grabbing a single commit, tagging releases, finding the commit that broke something, and more. You won't need these daily, but when you do, they're exactly the right tool.</p>
+
+  <h3>stash — set work aside temporarily</h3>
+  <p>You're mid-change and need to switch branches (<a class="xref" href="#ch5">Chapter 5</a>) or pull, but you're not ready to commit. <strong><code>git stash</code></strong> shelves your uncommitted changes (working dir + staging) and gives you a clean slate; you reapply them later:</p>
+  <pre><code>git stash                  # shelve current changes, clean working dir
+git stash list             # see stashes
+git stash pop              # reapply the latest stash AND remove it
+git stash apply            # reapply but keep it in the list
+git stash -u               # include untracked files
+git stash drop             # delete a stash</code></pre>
+  <p>Perfect for "I need to quickly switch to fix something else, then come back to what I was doing."</p>
+
+  <h3>cherry-pick — grab one specific commit</h3>
+  <p><strong><code>git cherry-pick &lt;commit&gt;</code></strong> copies a single commit from one branch onto your current branch &mdash; useful for pulling one bug fix into a release branch without merging everything, or moving a commit you made on the wrong branch:</p>
+  <pre><code>git switch main
+git cherry-pick a1b2c3d    # apply just that one commit here</code></pre>
+
+  <h3>tags &amp; releases — marking versions</h3>
+  <p><strong>Tags</strong> are permanent named pointers to a commit, used to mark releases (<code>v1.0.0</code>). Unlike branches, they don't move:</p>
+  <pre><code>git tag v1.0.0                       # lightweight tag on current commit
+git tag -a v1.0.0 -m "First release" # annotated tag (recommended: has message/date/author)
+git push origin v1.0.0               # tags aren't pushed by default!
+git push origin --tags               # push all tags</code></pre>
+  <p>On GitHub, tags become <strong>Releases</strong> &mdash; downloadable versioned snapshots with release notes and attached binaries. Most projects use <strong>semantic versioning</strong>: <code>MAJOR.MINOR.PATCH</code> (breaking.feature.fix).</p>
+
+  <h3>bisect — find the commit that broke it</h3>
+  <p><strong><code>git bisect</code></strong> is a hidden gem: it binary-searches your history to pinpoint exactly which commit introduced a bug. You mark a known-good and known-bad commit; Git checks out the midpoint; you test and say good/bad; it narrows down &mdash; finding the culprit among thousands of commits in a handful of steps:</p>
+  <pre><code>git bisect start
+git bisect bad                  # current version is broken
+git bisect good v1.0.0          # this old version worked
+# Git checks out a midpoint commit; test it, then:
+git bisect good   (or)   git bisect bad     # repeat until it names the culprit
+git bisect reset                # done -- return to where you were</code></pre>
+
+  <h3>The rest of the toolbox</h3>
+  <table>
+    <tr><th>Command</th><th>Does</th></tr>
+    <tr><td><code>git blame file</code></td><td>Who last changed each line (and in which commit) &mdash; for "why is this here?"</td></tr>
+    <tr><td><code>git log -p file</code> / <code>git log --follow</code></td><td>A file's change history (following renames)</td></tr>
+    <tr><td><code>git worktree</code></td><td>Check out multiple branches into separate folders at once</td></tr>
+    <tr><td><code>git submodule</code></td><td>Embed one repo inside another (powerful but fiddly &mdash; use sparingly)</td></tr>
+    <tr><td><code>git clean -fd</code></td><td>Delete untracked files/dirs (careful &mdash; not recoverable)</td></tr>
+  </table>
+
+  <div class="box field">
+    <span class="h">From the field — learn these when you hit the problem they solve</span>
+    Don't try to memorize this chapter &mdash; just know these tools <em>exist</em>, so when you hit the matching problem, you reach for the right one. <strong>stash</strong> you'll use often (the "switch branches without committing half-done work" moment comes up constantly). <strong>tags</strong> you'll use whenever you cut a release. <strong>cherry-pick</strong> when you need one commit somewhere else. And <strong>bisect</strong> is the one people are amazed exists: when a bug appeared "sometime in the last 200 commits," bisect finds the exact one in ~8 tests instead of reading them all &mdash; it has saved countless hours of debugging, and it's the chapter's hidden star. <code>git blame</code> answers "who wrote this and why" (read the commit it points to for the reasoning). The pattern across all of these: Git has a precise tool for almost every situation, and knowing the tool <em>exists</em> (then looking up its syntax &mdash; <a class="xref" href="#appA">Appendix A</a>) is enough. You don't need them daily; you need to recognize when their moment arrives.
+  </div>
+
+  <h2 class="chap" id="ch-internals">Git Internals: Objects &amp; the DAG <span class="n">— Chapter 22</span></h2>
+  <p class="intro">Everything Git does — branches, merges, the reflog, recovery — makes far more sense once you see the simple data model underneath. Git is, at heart, a content-addressed database of four object types linked into a graph. Learn that, and Git stops being magic.</p>
+
+  <h3>The four objects</h3>
+  <p>Git stores everything as <strong>objects</strong>, each named by the SHA hash of its contents (content-addressing &mdash; identical content always gets the same name). There are four kinds:</p>
+  <ul>
+    <li><strong>Blob</strong> &mdash; the contents of a file (just the bytes, no name).</li>
+    <li><strong>Tree</strong> &mdash; a directory listing: names plus the blob/tree each points to. A tree is a snapshot of a folder.</li>
+    <li><strong>Commit</strong> &mdash; a pointer to one tree (the whole project snapshot), plus author, message, and the hash(es) of its <em>parent</em> commit(s).</li>
+    <li><strong>Tag</strong> &mdash; (annotated tags) a named, described pointer to an object.</li>
+  </ul>
+  <p>Because a commit names its parents, the commits form a <strong>directed acyclic graph (DAG)</strong> &mdash; history is literally a graph of snapshots, each pointing back to where it came from.</p>
+
+  <h3>Refs are just pointers</h3>
+  <p>A <strong>branch is not a thing</strong> &mdash; it's just a tiny movable <strong>ref</strong>: a file containing one commit hash. <code>main</code> is a pointer to a commit; committing moves that pointer forward. <strong>HEAD</strong> is a pointer to the current branch (usually). This is why branching is so cheap (<a class="xref" href="#ch5">Chapter 5</a>): making a branch just writes one 40-character hash to a file. Tags, remotes' tracking branches &mdash; all just refs pointing into the object graph.</p>
+
+  <pre><code class="lang-bash">git cat-file -t &lt;hash&gt;     <span class="c"># what type is this object?</span>
+git cat-file -p &lt;hash&gt;     <span class="c"># pretty-print its contents</span>
+git rev-parse HEAD         <span class="c"># the hash HEAD points to</span>
+ls .git/refs/heads         <span class="c"># your branches are just files here</span></code></pre>
+
+  <h3>Why this explains everything</h3>
+  <p>The model demystifies the rest of Git: a <strong>merge</strong> is a commit with two parents; a <strong>rebase</strong> (<a class="xref" href="#ch8">Chapter 8</a>) <em>rewrites</em> commits as new objects with new hashes (which is why hashes change and why rewriting shared history is disruptive); <strong>"detached HEAD"</strong> (<a class="xref" href="#ch22">Chapter 25</a>) just means HEAD points straight at a commit instead of a branch; and the <strong>reflog</strong> (<a class="xref" href="#ch9">Chapter 9</a>) can recover "lost" work because the objects still exist in the database even when no ref points to them &mdash; nothing is deleted until garbage collection, long after.</p>
+
+  <div class="box field">
+    <span class="h">From the field — "snapshots, not diffs"</span>
+    The single most clarifying idea: Git stores <strong>snapshots, not differences</strong>. Each commit records the complete state of the project (via its tree), not a patch against the last one. Git <em>computes</em> diffs on demand for display, but it <em>stores</em> whole snapshots (deduplicated by content hash, so unchanged files cost nothing). Once "every commit is a full snapshot, and a branch is just a pointer to one," clicks into place, Git's behavior becomes predictable instead of mysterious &mdash; and you can reason your way out of almost any situation.
+  </div>
+
+  <h2 class="chap" id="ch-submodules">Submodules, Subtrees &amp; Monorepos <span class="n">— Chapter 23</span></h2>
+  <p class="intro">Real projects often outgrow a single repository — you depend on another repo, or you pull many projects into one. Git offers several ways to handle this, each with real trade-offs, and choosing badly causes lasting pain.</p>
+
+  <h3>Submodules: a repo inside a repo</h3>
+  <p>A <strong>submodule</strong> embeds one Git repository inside another, pinned to a <em>specific commit</em> of the inner repo. The outer repo records "use this dependency at exactly this commit," giving precise, reproducible control over a dependency you also develop. The cost: submodules are notoriously fiddly &mdash; clones need <code>--recurse-submodules</code>, updates are a two-step dance, and teammates forget to init them.</p>
+
+  <pre><code class="lang-bash">git submodule add &lt;url&gt; path/    <span class="c"># add a submodule</span>
+git clone --recurse-submodules &lt;url&gt;   <span class="c"># clone everything</span>
+git submodule update --remote     <span class="c"># pull submodule updates</span></code></pre>
+
+  <h3>Subtrees: merge a repo in</h3>
+  <p>A <strong>subtree</strong> takes a different approach: it actually merges another repo's contents <em>into</em> yours as a subdirectory, so clones "just work" with no special commands &mdash; everyone gets everything normally. The trade-off is that pushing changes back upstream is more involved. Subtrees favor the <em>consumer</em> (simple clone); submodules favor <em>precise dependency control</em>.</p>
+
+  <h3>Monorepos vs. many repos</h3>
+  <p>The bigger architectural choice: a <strong>monorepo</strong> (many projects in one big repository) or <strong>polyrepo</strong> (one repo per project). Monorepos simplify cross-project changes and shared tooling and are used at huge scale by some companies; they also strain Git at very large sizes (mitigated by tools like sparse-checkout, partial clone, and <a class="xref" href="#ch-internals">Chapter 22</a>'s object model). Polyrepos keep each project small and independent but make coordinated changes harder. There's no universal right answer &mdash; it's a deliberate trade-off about how your teams work.</p>
+
+  <div class="box field">
+    <span class="h">From the field — reach for these only when you must</span>
+    Most projects need none of this &mdash; and that's the point. Submodules and subtrees solve a <em>specific</em> problem (sharing code between repos you control) and add real friction, so adopt them only when a genuine need appears, and pick one approach and document it. For dependencies you merely <em>consume</em>, a normal package manager is almost always better than a submodule. And monorepo-vs-polyrepo is a team-scale decision, not a default to agonize over solo. When in doubt, stay with one ordinary repo as long as you can.
+  </div>
+
+  <h2 class="chap" id="ch-hooks">Hooks &amp; Automating Git <span class="n">— Chapter 24</span></h2>
+  <p class="intro">Git can run your own scripts automatically at key moments — before a commit, after a merge, when someone pushes. These hooks are how teams enforce quality and automate the boring parts, and they're the bridge from Git to CI/CD.</p>
+
+  <h3>What hooks are</h3>
+  <p>A <strong>hook</strong> is just a script Git runs automatically at a defined point in its workflow. They live in <code>.git/hooks/</code> (client-side) or on the server. Common client-side hooks:</p>
+  <ul>
+    <li><strong>pre-commit</strong> &mdash; runs before a commit is created; the classic place to lint code, run quick tests, or block secrets and giant files. If it exits non-zero, the commit is aborted.</li>
+    <li><strong>commit-msg</strong> &mdash; checks or formats the commit message (e.g., enforce a convention).</li>
+    <li><strong>pre-push</strong> &mdash; runs before pushing; a last chance to run the test suite.</li>
+  </ul>
+
+  <h3>The catch, and the fix</h3>
+  <p>A crucial gotcha: hooks in <code>.git/hooks/</code> are <strong>local and not shared</strong> by cloning (the <code>.git</code> folder isn't part of the project history). So a hook you set up doesn't reach your teammates. The standard solution is a <strong>hook manager</strong> &mdash; tools like the popular <code>pre-commit</code> framework or Husky &mdash; that store hook configuration <em>in</em> the repo and install it for everyone, making quality checks consistent across the team.</p>
+
+  <h3>From hooks to CI/CD</h3>
+  <p>Hooks enforce things on <em>developers' machines</em>, but they can be bypassed and aren't guaranteed. That's why the real enforcement lives on the <strong>server</strong>, in <strong>CI/CD</strong> (<a class="xref" href="#ch18">Chapter 18</a>): GitHub Actions and similar run your tests and checks on every push and pull request, where they can't be skipped. The healthy pattern is layered: fast checks via local hooks for quick feedback, authoritative checks in CI as the gate that actually protects the shared branch.</p>
+
+  <div class="box field">
+    <span class="h">From the field — automate the rules, don't nag about them</span>
+    The best teams encode their standards in automation rather than relying on people to remember: a <code>pre-commit</code> hook that auto-formats code ends the formatting debates; a secret-scanning hook catches the credential before it's ever committed (cheaper than the cleanup in <a class="xref" href="#ch20">Chapter 20</a>); CI that blocks merges on failing tests keeps the main branch healthy. Start small &mdash; one formatter and one test run &mdash; and let the machine enforce what would otherwise be tedious review comments. Automation turns "please remember to…" into "it just happens."
+  </div>
+
+  <h2 class="chap" id="ch22">Getting Out of Trouble <span class="n">— Chapter 22</span></h2>
+  <p class="intro">Everyone gets into Git messes — wrong branch, bad commit, scary error message, "I think I deleted everything." This chapter is the rescue manual: the calm, reassuring truth that almost everything is recoverable, plus the specific fixes for the situations that actually happen.</p>
+
+  <h3>First, the calming truth</h3>
+  <p>Before any fix, internalize this (from <a class="xref" href="#ch9">Chapter 9</a>): <strong>committed work is almost never truly lost.</strong> The <code>reflog</code> remembers nearly every state HEAD has been in for weeks. So when something looks catastrophic, take a breath &mdash; it's almost certainly recoverable. The two genuine exceptions: changes you <em>never committed</em> (uncommitted work discarded by <code>reset --hard</code>, <code>restore</code>, or <code>clean</code>), and rewriting <em>shared</em> history (<a class="xref" href="#ch8">Chapter 8</a>). Everything else, you can get back.</p>
+
+  <h3>The common messes, and their fixes</h3>
+  <table>
+    <tr><th>Situation</th><th>Fix</th></tr>
+    <tr><td>Committed to the wrong branch</td><td>On the branch: <code>git reset --soft HEAD~1</code> (uncommit, keep changes), switch to the right branch, recommit. Or <code>cherry-pick</code> it over (<a class="xref" href="#ch21">Ch 21</a>).</td></tr>
+    <tr><td>Bad last commit message</td><td><code>git commit --amend</code> (if not pushed) (<a class="xref" href="#ch9">Ch 9</a>)</td></tr>
+    <tr><td>Forgot a file in the last commit</td><td><code>git add forgotten-file</code> then <code>git commit --amend --no-edit</code></td></tr>
+    <tr><td>Need to undo a pushed commit</td><td><code>git revert &lt;commit&gt;</code> (safe on shared history) (<a class="xref" href="#ch9">Ch 9</a>)</td></tr>
+    <tr><td>"Detached HEAD" warning</td><td>You checked out a commit, not a branch. To keep work: <code>git switch -c newbranch</code>. To leave: <code>git switch main</code>.</td></tr>
+    <tr><td>Accidentally <code>reset --hard</code>, lost commits</td><td><code>git reflog</code>, find the hash, <code>git reset --hard &lt;hash&gt;</code> (<a class="xref" href="#ch9">Ch 9</a>)</td></tr>
+    <tr><td>Push rejected ("fetch first")</td><td>Remote has commits you lack: <code>git pull</code> (integrate), resolve any conflict, push again (<a class="xref" href="#ch10">Ch 10</a>)</td></tr>
+    <tr><td>Stuck mid-merge/rebase</td><td><code>git merge --abort</code> / <code>git rebase --abort</code> &mdash; back to before you started (<a class="xref" href="#ch7">Ch 7</a>)</td></tr>
+    <tr><td>Committed a secret</td><td>Rotate the secret <em>now</em>; then scrub history (<a class="xref" href="#ch20">Ch 20</a>)</td></tr>
+  </table>
+
+  <h3>"Detached HEAD" — the scary-sounding non-disaster</h3>
+  <p>This warning panics beginners but is harmless. It means <strong>HEAD points directly at a commit instead of a branch</strong> (<a class="xref" href="#ch2">Chapter 2</a>) &mdash; usually because you checked out an old commit or a tag to look around. You can look freely; you just shouldn't commit there without making a branch (commits on a detached HEAD can be lost when you leave, since no branch points to them). If you made changes you want to keep: <code>git switch -c new-branch-name</code> turns them into a real branch. If you just want out: <code>git switch main</code>. Not a disaster &mdash; just Git telling you "you're not on a branch right now."</p>
+
+  <h3>When you're truly stuck</h3>
+  <p>If you can't figure out a fix and it's a real mess, the nuclear-but-safe option exists: <strong>clone a fresh copy</strong>. Because the remote (and reflog) have your history, you can often <code>git clone</code> the repo again into a new folder, salvage what you need, and start clean &mdash; without losing committed work. And searching the <em>exact</em> Git error message almost always finds someone who hit it before. You are rarely the first.</p>
+
+  <div class="box field">
+    <span class="h">From the field — stay calm, check the reflog, and remember --abort</span>
+    The difference between a Git novice and a veteran isn't that veterans don't get into messes &mdash; they absolutely do, constantly &mdash; it's that they <em>don't panic</em>, because they know the escape routes. Three things to carry: <strong>(1)</strong> committed work is almost always recoverable via <code>git reflog</code> + <code>reset --hard &lt;hash&gt;</code> (<a class="xref" href="#ch9">Chapter 9</a>) &mdash; so a "disaster" is usually a five-minute fix; <strong>(2)</strong> when you're stuck in the middle of a merge/rebase/anything, <code>--abort</code> usually exists and puts you back where you started; <strong>(3)</strong> "detached HEAD" and "push rejected" sound scary but are routine, non-destructive states with simple fixes (above). Read the error message carefully &mdash; Git's messages, once you're past the initial intimidation, are genuinely helpful and often <em>tell you the fix</em>. And keep a clean practice repo (<a class="xref" href="#ch3">Chapter 3</a>) to test a risky recovery before doing it on real work. Calm + reflog + --abort gets you out of nearly anything. That confidence is the final piece of Git fluency.
+  </div>
+
+  <h2 class="part-divider" id="partVI">Part VI — Practice &amp; Reference</h2>
+
+  <h2 class="chap" id="ch23">Lab Exercises <span class="n">— Chapter 23</span></h2>
+  <p class="intro">Git only sticks when you do it. These labs walk you through the real workflows using everything from the book — safe to do in a throwaway practice repo. Type them, make the mistakes on purpose, and recover. That's how the fear turns into fluency.</p>
+
+  <div class="box lab">
+    <span class="h">Ground rules</span>
+    Use a throwaway repo (<code>mkdir ~/git-lab; cd ~/git-lab; git init</code>) so nothing matters. For the GitHub labs you'll need a (free) account and auth set up (<a class="xref" href="#ch15">Chapter 15</a>) &mdash; or skip those and do the local ones. Type the commands; the typing is the learning. Run <code>git status</code> and <code>git log --oneline --graph --all</code> liberally to <em>see</em> what each command did.
+  </div>
+
+  <h3>Lab 1 — The core loop (<a class="xref" href="#ch3">Ch 3</a>, <a class="xref" href="#ch4">4</a>)</h3>
+  <ol><li><code>git init</code> a repo; configure your name/email if you haven't.</li><li>Create a file, <code>git status</code>, <code>git add</code>, <code>git commit</code>; repeat with edits.</li><li><code>git log --oneline</code> to see your history; <code>git diff</code> before staging.</li><li><strong>Goal:</strong> the edit&rarr;status&rarr;add&rarr;commit rhythm is automatic.</li></ol>
+
+  <h3>Lab 2 — Branch &amp; merge (<a class="xref" href="#ch5">Ch 5</a>, <a class="xref" href="#ch6">6</a>)</h3>
+  <ol><li>Branch with <code>git switch -c feature</code>; commit something; switch back to <code>main</code> and watch the file vanish.</li><li>Merge <code>feature</code> into <code>main</code>; view it with <code>git log --graph --all</code>.</li><li>Delete the merged branch.</li><li><strong>Goal:</strong> branching/merging feels routine.</li></ol>
+
+  <h3>Lab 3 — Create &amp; resolve a conflict (<a class="xref" href="#ch7">Ch 7</a>)</h3>
+  <ol><li>Make two branches that edit the <em>same line</em> of a file differently.</li><li>Merge one into the other; hit the conflict.</li><li>Edit the file to resolve it (remove the markers), <code>git add</code>, <code>git commit</code>.</li><li>Bonus: trigger another conflict and <code>git merge --abort</code> out of it.</li><li><strong>Goal:</strong> conflicts don't scare you.</li></ol>
+
+  <h3>Lab 4 — Undo everything (<a class="xref" href="#ch9">Ch 9</a>)</h3>
+  <ol><li>Make a commit, then <code>git reset --hard HEAD~1</code> to "lose" it.</li><li>Recover it via <code>git reflog</code> + <code>git reset --hard &lt;hash&gt;</code>.</li><li>Practice <code>git restore</code> (discard edits) and <code>git restore --staged</code> (unstage).</li><li>Make a bad commit and fix it with <code>git commit --amend</code>.</li><li><strong>Goal:</strong> you believe, from experience, that Git has your back.</li></ol>
+
+  <h3>Lab 5 — Tidy with interactive rebase (<a class="xref" href="#ch8">Ch 8</a>)</h3>
+  <ol><li>Make 3-4 messy commits ("wip", "more", "fix").</li><li><code>git rebase -i HEAD~4</code>; squash them into one and reword the message.</li><li>Confirm with <code>git log --oneline</code>.</li><li><strong>Goal:</strong> clean up your own history before sharing.</li></ol>
+
+  <h3>Lab 6 — Push to GitHub (<a class="xref" href="#ch10">Ch 10</a>, <a class="xref" href="#ch11">11</a>, <a class="xref" href="#ch15">15</a>)</h3>
+  <ol><li>Set up auth (SSH keys via <code>gh auth login</code> or manually).</li><li>Create a repo (<code>gh repo create</code> or on the website), link it, <code>git push -u origin main</code>.</li><li>Edit a file on the GitHub website, then <code>git pull</code> the change down.</li><li><strong>Goal:</strong> the local&harr;remote sync loop.</li></ol>
+
+  <h3>Lab 7 — The full PR workflow (<a class="xref" href="#ch12">Ch 12</a>, <a class="xref" href="#ch13">13</a>)</h3>
+  <ol><li>Branch, commit, push the branch (<code>git push -u origin feature</code>).</li><li>Open a PR on GitHub (or <code>gh pr create</code>); read the diff view.</li><li>Merge it (try "squash and merge"); pull <code>main</code>; delete the branch.</li><li><strong>Goal:</strong> the professional everyday cycle, end to end.</li></ol>
+
+  <h3>Lab 8 — Add a .gitignore &amp; a CI workflow (<a class="xref" href="#ch17">Ch 17</a>, <a class="xref" href="#ch18">18</a>)</h3>
+  <ol><li>Add a <code>.gitignore</code> (use a language template); confirm ignored files don't show in <code>git status</code>.</li><li>Add a tiny <code>.github/workflows/ci.yml</code> that runs <code>echo "tests pass"</code> on push.</li><li>Push; watch it run on the Actions tab.</li><li><strong>Goal:</strong> clean repos + automation basics.</li></ol>
+
+  <h3>Lab 9 — Contribute to open source (<a class="xref" href="#ch19">Ch 19</a>) <em>(the capstone)</em></h3>
+  <ol><li>Find a project with a <code>good first issue</code> or a docs typo (your own other repos count for practice).</li><li>Fork, clone, branch, fix, commit, push to your fork.</li><li>Open a PR to the original; write a clear description.</li><li><strong>Goal:</strong> you've done a real contribution, the full fork-and-pull flow.</li></ol>
+
+  <h3>Lab 10 — Get out of trouble (<a class="xref" href="#ch22">Ch 22</a>)</h3>
+  <ol><li>Create a "detached HEAD" by checking out an old commit; rescue work into a branch.</li><li>Commit to the wrong branch on purpose; move it to the right one.</li><li>Use <code>git bisect</code> on a repo with several commits to "find" a planted change (<a class="xref" href="#ch21">Ch 21</a>).</li><li><strong>Goal:</strong> calm under pressure &mdash; you know the escape routes.</li></ol>
+
+  <div class="box field">
+    <span class="h">From the field — make the mistakes here, on purpose</span>
+    The single best way to become genuinely confident with Git is to <strong>deliberately create the scary situations in a throwaway repo and practice recovering</strong> &mdash; lose a commit and reflog it back, cause a conflict and resolve it, get a detached HEAD and escape, reset --hard and undo it. Do these labs and the abstract fear ("what if I break something?") gets replaced by concrete experience ("oh, I've recovered from this exact thing before"). That's the whole difference. Then take the real step: <strong>use Git for an actual project you care about</strong> &mdash; a website, a script collection, your dotfiles (<a class="xref" href="Linux_Field_Guide.html#ch19">Linux Field Guide</a>), school work, anything &mdash; and push it to GitHub. Nothing cements the workflow like living in it daily on something real, and you'll build a public portfolio (<a class="xref" href="#ch11">Chapter 11</a>) in the process. Reading taught you the model; the keyboard makes it yours.
+  </div>
+
+  <h2 class="chap" id="ch24">Glossary <span class="n">— Chapter 24</span></h2>
+  <p class="intro">Quick reference for the terms used throughout, each with a pointer to where it's explained.</p>
+
+  <table>
+    <tr><th>Term</th><th>Meaning</th></tr>
+    <tr><td><strong>branch</strong></td><td>A movable pointer to a commit; an independent line of work (<a class="xref" href="#ch5">Ch 5</a>).</td></tr>
+    <tr><td><strong>checkout / switch</strong></td><td>Move to a branch or commit (switch is the modern command) (<a class="xref" href="#ch5">Ch 5</a>).</td></tr>
+    <tr><td><strong>cherry-pick</strong></td><td>Copy a single commit onto the current branch (<a class="xref" href="#ch21">Ch 21</a>).</td></tr>
+    <tr><td><strong>CI/CD</strong></td><td>Continuous Integration / Delivery &mdash; automated test &amp; deploy (<a class="xref" href="#ch18">Ch 18</a>).</td></tr>
+    <tr><td><strong>clone</strong></td><td>Download a full copy of a remote repo (<a class="xref" href="#ch10">Ch 10</a>).</td></tr>
+    <tr><td><strong>commit</strong></td><td>A saved snapshot of the project with a message (<a class="xref" href="#ch2">Ch 2</a>, <a class="xref" href="#ch4">4</a>).</td></tr>
+    <tr><td><strong>conflict</strong></td><td>When two branches change the same lines; you resolve it manually (<a class="xref" href="#ch7">Ch 7</a>).</td></tr>
+    <tr><td><strong>detached HEAD</strong></td><td>HEAD points at a commit, not a branch &mdash; harmless, just branch before committing (<a class="xref" href="#ch22">Ch 22</a>).</td></tr>
+    <tr><td><strong>diff</strong></td><td>The difference between two states (<a class="xref" href="#ch4">Ch 4</a>).</td></tr>
+    <tr><td><strong>fast-forward</strong></td><td>A merge that just slides the pointer forward (no merge commit) (<a class="xref" href="#ch6">Ch 6</a>).</td></tr>
+    <tr><td><strong>fetch</strong></td><td>Download remote commits without merging (<a class="xref" href="#ch10">Ch 10</a>).</td></tr>
+    <tr><td><strong>fork</strong></td><td>Your own server-side copy of someone else's repo (<a class="xref" href="#ch12">Ch 12</a>).</td></tr>
+    <tr><td><strong>gh</strong></td><td>GitHub's official command-line tool (<a class="xref" href="#ch11">Ch 11</a>).</td></tr>
+    <tr><td><strong>Git vs GitHub</strong></td><td>Git = the tool (local); GitHub = a hosting service for Git repos (<a class="xref" href="#ch1">Ch 1</a>).</td></tr>
+    <tr><td><strong>.gitignore</strong></td><td>Lists files/patterns Git should not track (<a class="xref" href="#ch17">Ch 17</a>).</td></tr>
+    <tr><td><strong>HEAD</strong></td><td>Pointer to "where you are now" &mdash; usually the latest commit on your branch (<a class="xref" href="#ch2">Ch 2</a>).</td></tr>
+    <tr><td><strong>issue</strong></td><td>A tracked bug, task, or discussion on GitHub (<a class="xref" href="#ch14">Ch 14</a>).</td></tr>
+    <tr><td><strong>LFS</strong></td><td>Large File Storage &mdash; handles big binaries outside the main repo (<a class="xref" href="#ch17">Ch 17</a>).</td></tr>
+    <tr><td><strong>main / master</strong></td><td>The default branch (same thing; main is the modern name) (<a class="xref" href="#ch3">Ch 3</a>).</td></tr>
+    <tr><td><strong>merge</strong></td><td>Combine one branch's work into another (<a class="xref" href="#ch6">Ch 6</a>).</td></tr>
+    <tr><td><strong>origin</strong></td><td>The conventional name for your main remote (<a class="xref" href="#ch10">Ch 10</a>).</td></tr>
+    <tr><td><strong>PAT</strong></td><td>Personal Access Token &mdash; used instead of a password (<a class="xref" href="#ch15">Ch 15</a>).</td></tr>
+    <tr><td><strong>pull</strong></td><td>Fetch + merge remote changes (<a class="xref" href="#ch10">Ch 10</a>).</td></tr>
+    <tr><td><strong>pull request (PR)</strong></td><td>A proposal to merge a branch, opened for review (<a class="xref" href="#ch13">Ch 13</a>).</td></tr>
+    <tr><td><strong>push</strong></td><td>Upload local commits to a remote (<a class="xref" href="#ch10">Ch 10</a>).</td></tr>
+    <tr><td><strong>rebase</strong></td><td>Replay commits onto a new base; rewrites history &mdash; private only (<a class="xref" href="#ch8">Ch 8</a>).</td></tr>
+    <tr><td><strong>reflog</strong></td><td>A log of everywhere HEAD has been &mdash; the recovery net (<a class="xref" href="#ch9">Ch 9</a>).</td></tr>
+    <tr><td><strong>remote</strong></td><td>A copy of the repo hosted elsewhere (<a class="xref" href="#ch10">Ch 10</a>).</td></tr>
+    <tr><td><strong>repository (repo)</strong></td><td>A project Git is tracking (the <code>.git</code> folder holds it) (<a class="xref" href="#ch3">Ch 3</a>).</td></tr>
+    <tr><td><strong>reset</strong></td><td>Move the branch pointer; soft/mixed/hard differ in what they keep (<a class="xref" href="#ch9">Ch 9</a>).</td></tr>
+    <tr><td><strong>restore</strong></td><td>Discard changes / unstage files (<a class="xref" href="#ch9">Ch 9</a>).</td></tr>
+    <tr><td><strong>revert</strong></td><td>A new commit that undoes an old one &mdash; safe on shared history (<a class="xref" href="#ch9">Ch 9</a>).</td></tr>
+    <tr><td><strong>SHA / commit hash</strong></td><td>A commit's unique ID (e.g. <code>a3f5c9d</code>) (<a class="xref" href="#ch2">Ch 2</a>).</td></tr>
+    <tr><td><strong>staging area (index)</strong></td><td>Where you assemble the next commit (<a class="xref" href="#ch2">Ch 2</a>).</td></tr>
+    <tr><td><strong>stash</strong></td><td>Temporarily shelve uncommitted changes (<a class="xref" href="#ch21">Ch 21</a>).</td></tr>
+    <tr><td><strong>tag</strong></td><td>A permanent pointer marking a version/release (<a class="xref" href="#ch21">Ch 21</a>).</td></tr>
+    <tr><td><strong>upstream</strong></td><td>The original repo a fork was made from (<a class="xref" href="#ch12">Ch 12</a>).</td></tr>
+    <tr><td><strong>working directory</strong></td><td>Your actual files as you edit them (<a class="xref" href="#ch2">Ch 2</a>).</td></tr>
+    <tr><td><strong>workflow (Actions)</strong></td><td>A YAML automation file in <code>.github/workflows/</code> (<a class="xref" href="#ch18">Ch 18</a>).</td></tr>
+  </table>
+
+  <h2 class="part-divider" id="appendices">Appendices</h2>
+
+  <h2 class="chap" id="appA">Command Cheat-Sheet <span class="n">— Appendix A</span></h2>
+  <p class="intro">Every command from this book, grouped for fast lookup — the page to keep open while you work. Each is explained in its chapter; this is the quick reference.</p>
+
+  <h3>Setup &amp; basics (<a class="xref" href="#ch3">Ch 3</a>&ndash;<a class="xref" href="#ch4">4</a>)</h3>
+  <pre><code>git config --global user.name "Name"        one-time identity setup
+git config --global user.email "you@x.com"
+git init                    start a repo here
+git clone URL               copy a remote repo
+git status                  what's changed / staged (run constantly)
+git add file   /   git add .     stage a file / everything
+git commit -m "msg"         snapshot staged changes
+git commit -am "msg"        stage tracked + commit
+git commit --amend          fix the last commit
+git log --oneline --graph --all     history (compact, visual)
+git diff   /   git diff --staged    unstaged / staged changes</code></pre>
+
+  <h3>Branching &amp; merging (<a class="xref" href="#ch5">Ch 5</a>&ndash;<a class="xref" href="#ch8">8</a>)</h3>
+  <pre><code>git branch                  list branches
+git switch -c name          create + switch to branch
+git switch name             switch branch
+git branch -d name          delete a merged branch
+git merge name              merge a branch into current
+git merge --abort           bail out of a conflicted merge
+git rebase main             replay current branch on top of main
+git rebase -i HEAD~3        interactively squash/reword/reorder (private only!)
+git rebase --abort          bail out of a rebase</code></pre>
+
+  <h3>Undoing (<a class="xref" href="#ch9">Ch 9</a>)</h3>
+  <pre><code>git restore file            discard unstaged edits to a file
+git restore --staged file   unstage (keep the edits)
+git reset --soft HEAD~1     uncommit, keep changes staged
+git reset --hard HEAD~1     uncommit AND discard changes (careful)
+git revert COMMIT           new commit that undoes a commit (safe when shared)
+git reflog                  history of HEAD -- the recovery net
+git reset --hard HASH       jump back to a reflog hash (recover)</code></pre>
+
+  <h3>Remotes &amp; GitHub (<a class="xref" href="#ch10">Ch 10</a>, <a class="xref" href="#ch11">11</a>, <a class="xref" href="#ch15">15</a>)</h3>
+  <pre><code>git remote add origin URL   link a remote
+git remote -v               list remotes
+git push -u origin main     first push (sets upstream)
+git push   /   git pull   /   git fetch     upload / download+merge / download
+ssh-keygen -t ed25519       make an SSH key (then add .pub to GitHub)
+gh auth login               authenticate the GitHub CLI
+gh repo create NAME --public --source=. --push
+gh pr create   /   gh pr view --web   /   gh pr checkout N
+gh issue create   /   gh issue list</code></pre>
+
+  <h3>Inspecting &amp; advanced (<a class="xref" href="#ch21">Ch 21</a>)</h3>
+  <pre><code>git stash   /   git stash pop      shelve / restore work-in-progress
+git cherry-pick COMMIT      copy one commit here
+git tag -a v1.0.0 -m "msg"  /   git push origin --tags     tag a release
+git bisect start            binary-search for the commit that broke something
+git blame file              who changed each line
+git log -p file             a file's change history
+git clean -fd               delete untracked files (careful)</code></pre>
+
+  <h3>The everyday workflow (<a class="xref" href="#ch12">Ch 12</a>)</h3>
+  <pre><code>git switch main &amp;&amp; git pull         # 1. start from latest
+git switch -c feature-x             # 2. branch
+# ...edit, git add, git commit...   # 3. work
+git push -u origin feature-x        # 4. push
+# ...open PR, get review, merge on GitHub...   # 5-6
+git switch main &amp;&amp; git pull         # 7. update
+git branch -d feature-x             # 8. clean up</code></pre>
+
+  <div class="box field">
+    <span class="h">From the field — keep this open; the daily set is small</span>
+    The list looks long, but your <em>daily</em> Git is tiny: <code>status</code>, <code>add</code>, <code>commit</code>, <code>push</code>, <code>pull</code>, <code>switch</code>, <code>merge</code>, <code>log</code>. Those eight cover ~90% of real use and become reflex within a week. The rest (rebase, cherry-pick, bisect, reflog) are situational tools you look up here when their moment comes (<a class="xref" href="#ch21">Chapter 21</a>) &mdash; no need to memorize them. Keep this page handy, lean on it freely, and let the daily set settle into muscle memory.
+  </div>
+
+  <h2 class="chap" id="appB">Workflow &amp; .gitignore Reference <span class="n">— Appendix B</span></h2>
+  <p class="intro">Quick-reference for the everyday workflow, commit-message conventions, and ready-to-use .gitignore starters — the practical patterns you'll reuse on every project.</p>
+
+  <h3>The daily workflow, at a glance (<a class="xref" href="#ch12">Ch 12</a>)</h3>
+  <table class="lookup">
+    <tr><th>Step</th><th>Command</th></tr>
+    <tr><td>1. Get latest</td><td><code>git switch main &amp;&amp; git pull</code></td></tr>
+    <tr><td>2. Branch</td><td><code>git switch -c feature/thing</code></td></tr>
+    <tr><td>3. Work (repeat)</td><td><code>git add . &amp;&amp; git commit -m "..."</code></td></tr>
+    <tr><td>4. Share</td><td><code>git push -u origin feature/thing</code></td></tr>
+    <tr><td>5. Review</td><td>Open a PR; address feedback with more commits</td></tr>
+    <tr><td>6. Merge</td><td>Merge the PR on GitHub</td></tr>
+    <tr><td>7. Sync</td><td><code>git switch main &amp;&amp; git pull</code></td></tr>
+    <tr><td>8. Clean up</td><td><code>git branch -d feature/thing</code></td></tr>
+  </table>
+
+  <h3>Commit message conventions (<a class="xref" href="#ch4">Ch 4</a>)</h3>
+  <ul>
+    <li><strong>Summary line:</strong> imperative mood, under ~50 chars &mdash; "Add user export" (as in "this commit will Add user export").</li>
+    <li><strong>Blank line, then body</strong> (for non-trivial changes): explain <em>why</em>, wrap at ~72 chars.</li>
+    <li><strong>Reference issues:</strong> "Closes #42" in the body auto-closes the issue on merge (<a class="xref" href="#ch14">Ch 14</a>).</li>
+    <li><strong>Conventional Commits</strong> (optional, popular): prefix with a type &mdash; <code>feat:</code>, <code>fix:</code>, <code>docs:</code>, <code>refactor:</code>, <code>test:</code>, <code>chore:</code> &mdash; which enables automated changelogs/versioning.</li>
+  </ul>
+  <pre><code>fix: prevent crash when cart is empty
+
+The checkout handler assumed at least one item. Guard against the
+empty case and show a friendly message instead.
+
+Closes #128</code></pre>
+
+  <h3>Branch naming conventions (<a class="xref" href="#ch16">Ch 16</a>)</h3>
+  <table class="lookup">
+    <tr><th>Prefix</th><th>For</th><th>Example</th></tr>
+    <tr><td><code>feature/</code></td><td>New functionality</td><td><code>feature/csv-export</code></td></tr>
+    <tr><td><code>fix/</code></td><td>Bug fixes</td><td><code>fix/login-timeout</code></td></tr>
+    <tr><td><code>docs/</code></td><td>Documentation</td><td><code>docs/readme-setup</code></td></tr>
+    <tr><td><code>chore/</code></td><td>Maintenance, deps</td><td><code>chore/bump-deps</code></td></tr>
+    <tr><td><code>hotfix/</code></td><td>Urgent production fix</td><td><code>hotfix/payment-bug</code></td></tr>
+  </table>
+
+  <h3>.gitignore starters (<a class="xref" href="#ch17">Ch 17</a>)</h3>
+  <p>GitHub auto-suggests language templates when you create a repo; here are common essentials:</p>
+  <pre><code># --- Universal (always useful) ---
+.env
+.env.local
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# --- Node / JavaScript ---
+node_modules/
+dist/
+build/
+npm-debug.log*
+
+# --- Python ---
+__pycache__/
+*.pyc
+venv/
+.venv/
+*.egg-info/
+
+# --- Compiled / general ---
+*.o
+*.class
+target/
+bin/</code></pre>
+
+  <h3>Useful global config (<a class="xref" href="#ch3">Ch 3</a>)</h3>
+  <pre><code>git config --global init.defaultBranch main
+git config --global pull.rebase false        # merge on pull (or true for rebase)
+git config --global core.editor "nano"       # or "vim", "code --wait"
+git config --global alias.lg "log --oneline --graph --all"   # handy alias: git lg
+git config --global alias.st "status -s"     # git st
+# a global gitignore for OS/editor cruft across ALL repos:
+git config --global core.excludesfile ~/.gitignore_global</code></pre>
+
+  <div class="box field">
+    <span class="h">From the field — conventions are a kindness to your future team</span>
+    None of these conventions are enforced by Git &mdash; they're agreements that make collaboration smoother. Consistent <strong>commit messages</strong> make history readable and <code>git log</code> useful for spelunking later; <strong>branch prefixes</strong> make it obvious at a glance what each branch is for; a good <strong>.gitignore</strong> from the start keeps junk and secrets out (<a class="xref" href="#ch20">Ch 20</a>). Adopt them early as personal habits and they'll already feel natural when you join a team that requires them (and most do). The aliases above are a small daily luxury &mdash; <code>git lg</code> for a graph view and <code>git st</code> for status save thousands of keystrokes over time (set up more in your dotfiles &mdash; <a class="xref" href="Linux_Field_Guide.html#ch19">Linux Field Guide</a>). Small disciplines, compounding returns.
+  </div>
+
+  <h2 class="chap" id="appC">"How Do I Undo X?" <span class="n">— Appendix C</span></h2>
+  <p class="intro">The panic-button reference. Find your situation, get the fix. This is the page to open when something went wrong and you need the answer now — then read the linked chapter later to understand why it works.</p>
+
+  <div class="box tip">
+    <span class="h">First: don't panic</span>
+    <strong>Committed work is almost never truly lost</strong> (<a class="xref" href="#ch9">Ch 9</a>, <a class="xref" href="#ch22">22</a>). The <code>reflog</code> remembers nearly everything for weeks. The only genuinely unrecoverable things are uncommitted changes you discard, and rewriting shared history. So breathe, find your row below, and fix it.
+  </div>
+
+  <h3>Undoing changes &amp; commits</h3>
+  <table class="lookup">
+    <tr><th>I want to&hellip;</th><th>Do this</th></tr>
+    <tr><td>Discard edits to a file (not committed)</td><td><code>git restore file</code> (gone for good &mdash; be sure)</td></tr>
+    <tr><td>Unstage a file (keep the edits)</td><td><code>git restore --staged file</code></td></tr>
+    <tr><td>Discard ALL uncommitted changes</td><td><code>git restore .</code> (and <code>git clean -fd</code> for untracked) &mdash; careful</td></tr>
+    <tr><td>Fix the last commit's message</td><td><code>git commit --amend</code> (only if not pushed)</td></tr>
+    <tr><td>Add a forgotten file to the last commit</td><td><code>git add file &amp;&amp; git commit --amend --no-edit</code></td></tr>
+    <tr><td>Undo last commit, keep changes (redo it)</td><td><code>git reset --soft HEAD~1</code></td></tr>
+    <tr><td>Undo last commit, throw away changes</td><td><code>git reset --hard HEAD~1</code> (careful)</td></tr>
+    <tr><td>Undo a commit that's already pushed/shared</td><td><code>git revert COMMIT</code> (safe &mdash; makes a new undo commit)</td></tr>
+  </table>
+
+  <h3>Branches &amp; commits in the wrong place</h3>
+  <table class="lookup">
+    <tr><th>Situation</th><th>Fix</th></tr>
+    <tr><td>Committed to the wrong branch</td><td><code>git reset --soft HEAD~1</code>, <code>git switch right-branch</code>, recommit (or <code>cherry-pick</code> &mdash; <a class="xref" href="#ch21">Ch 21</a>)</td></tr>
+    <tr><td>Want one commit from another branch</td><td><code>git cherry-pick COMMIT</code></td></tr>
+    <tr><td>Made a branch from the wrong base</td><td><code>git rebase --onto newbase oldbase branch</code> (<a class="xref" href="#ch8">Ch 8</a>)</td></tr>
+    <tr><td>Renamed/want to rename current branch</td><td><code>git branch -m newname</code></td></tr>
+    <tr><td>Deleted a branch by mistake</td><td><code>git reflog</code> to find its tip, <code>git branch name HASH</code></td></tr>
+  </table>
+
+  <h3>Recovery &amp; "I think I lost it"</h3>
+  <table class="lookup">
+    <tr><th>Situation</th><th>Fix</th></tr>
+    <tr><td>Lost commits after a bad reset/rebase</td><td><code>git reflog</code>, find the hash, <code>git reset --hard HASH</code> (<a class="xref" href="#ch9">Ch 9</a>)</td></tr>
+    <tr><td>"Detached HEAD" &mdash; made commits there</td><td><code>git switch -c keep-these</code> to save them as a branch (<a class="xref" href="#ch22">Ch 22</a>)</td></tr>
+    <tr><td>Hopelessly tangled local repo</td><td>If pushed: re-<code>clone</code> a fresh copy and salvage (<a class="xref" href="#ch22">Ch 22</a>)</td></tr>
+    <tr><td>Committed a secret</td><td><strong>Rotate the secret NOW</strong>, then scrub history (<a class="xref" href="#ch20">Ch 20</a>)</td></tr>
+  </table>
+
+  <h3>Merges, rebases &amp; remotes</h3>
+  <table class="lookup">
+    <tr><th>Situation</th><th>Fix</th></tr>
+    <tr><td>Stuck in a conflicted merge</td><td>Resolve files + <code>git add</code> + <code>git commit</code>, OR <code>git merge --abort</code> (<a class="xref" href="#ch7">Ch 7</a>)</td></tr>
+    <tr><td>Stuck in a rebase</td><td><code>git rebase --continue</code> (after resolving) or <code>git rebase --abort</code></td></tr>
+    <tr><td>Push rejected ("fetch first")</td><td><code>git pull</code>, resolve any conflict, <code>git push</code> (<a class="xref" href="#ch10">Ch 10</a>)</td></tr>
+    <tr><td>Pulled and got an unwanted merge</td><td><code>git reset --hard HEAD~1</code> (if local-only) and re-pull with <code>--rebase</code></td></tr>
+    <tr><td>Accidentally started a giant merge commit</td><td><code>git merge --abort</code> and rethink</td></tr>
+  </table>
+
+  <div class="box danger">
+    <span class="h">The few things that ARE dangerous</span>
+    Most of the above is safe and reversible, but respect these: <strong><code>reset --hard</code></strong> and <strong><code>git clean</code></strong> and <strong><code>restore</code></strong> permanently discard <em>uncommitted</em> work (no reflog for what was never committed) &mdash; commit or stash first if unsure. <strong>Force-pushing</strong> (<code>push --force</code>) after a rebase can overwrite others' work on a shared branch &mdash; never do it on shared branches; prefer <code>--force-with-lease</code> even on your own (<a class="xref" href="#ch8">Ch 8</a>). And <strong>rewriting shared history</strong> is the one truly disruptive thing. When in doubt, prefer the additive, safe options (<code>revert</code>, a new commit, <code>stash</code>) over the rewriting ones.
+  </div>
+
+  <div class="box field">
+    <span class="h">From the field — bookmark this page</span>
+    This is the appendix you'll actually use under stress. The pattern to remember: when something goes wrong, (1) <em>stop and breathe</em> &mdash; it's almost certainly recoverable; (2) find your row here for the immediate fix; (3) if you're unsure whether a fix is destructive, <code>git stash</code> or commit your current state first so you have a fallback; (4) when calm, read the linked chapter to understand <em>why</em> it worked, so next time it's not a mystery. The single most empowering Git command for getting unstuck is <code>git reflog</code> &mdash; it's the time machine that makes "I destroyed everything" almost always false. Keep this page handy, lean on it without shame (everyone does), and over time you'll need it less as the fixes become familiar. Calm + this reference = you can get out of anything Git throws at you.
+  </div>
+
+  <hr>
+  <div class="box field">
+    <span class="h">A closing word</span>
+    Git rewards understanding over memorization like few tools do. The person who memorized ten commands panics the moment something unexpected happens; the person who understands the model (Chapter 2) reasons their way out of anything, because they know what Git is actually doing under the hood. You now have that model &mdash; snapshots, the three areas, the moving branch pointers, the safety net of the reflog. The commands are just the interface to those ideas. So keep a practice repo around, make a mess in it on purpose, and recover &mdash; that's how the fear dissolves and the fluency arrives. Git underpins essentially all modern software collaboration; getting genuinely comfortable with it pays dividends in every technical role you'll ever have. Now go make a commit.
+  </div>
+
+  <a href="#" class="backtop" id="backtop" title="Back to top">&uarr;</a>
+
+</div>
+</div>
+
+<div id="palette" role="dialog" aria-modal="true">
+  <div id="palbox">
+    <input id="palinput" type="text" placeholder="Search the whole book&hellip; (commands, concepts, workflows)" autocomplete="off" spellcheck="false">
+    <div id="palresults"></div>
+    <div id="palhint"><span><b>&uarr;&darr;</b> navigate</span><span><b>&crarr;</b> open</span><span><b>esc</b> close</span></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var root=document.documentElement, body=document.body;
+  var LS={get:function(k,d){try{var v=localStorage.getItem(k);return v===null?d:v;}catch(e){return d;}},set:function(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
+
+  var themeBtn=document.getElementById('themebtn');
+  function applyTheme(t){root.setAttribute('data-theme',t);themeBtn.innerHTML=(t==='light')?'&#9728;':'&#9789;';LS.set('git-theme',t);}
+  applyTheme(LS.get('git-theme','dark'));
+  themeBtn.addEventListener('click',function(){applyTheme(root.getAttribute('data-theme')==='light'?'dark':'light');});
+
+  var fs=parseInt(LS.get('git-fs','16'),10);
+  function applyFs(){fs=Math.max(13,Math.min(21,fs));root.style.setProperty('--fs',fs+'px');LS.set('git-fs',fs);}
+  applyFs();
+  document.getElementById('fsup').addEventListener('click',function(){fs+=1;applyFs();});
+  document.getElementById('fsdown').addEventListener('click',function(){fs-=1;applyFs();});
+
+  var collapsed={};try{collapsed=JSON.parse(LS.get('git-collapsed','{}'))||{};}catch(e){collapsed={};}
+  [].forEach.call(document.querySelectorAll('.navpart'),function(part){
+    var btn=part.querySelector('button.part');var key=btn.textContent.trim();
+    if(collapsed[key])part.classList.add('collapsed');
+    btn.addEventListener('click',function(){part.classList.toggle('collapsed');collapsed[key]=part.classList.contains('collapsed');LS.set('git-collapsed',JSON.stringify(collapsed));});
+  });
+
+  var used={};document.querySelectorAll('[id]').forEach(function(el){used[el.id]=true;});
+  function slug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,50);}
+  document.querySelectorAll('.content h3, .content h4').forEach(function(h){if(h.id)return;var base=slug(h.textContent)||'s',id=base,n=2;while(used[id]){id=base+'-'+(n++);}used[id]=true;h.id=id;});
+  document.querySelectorAll('.content h2.chap, .content h3').forEach(function(h){if(!h.id)return;var a=document.createElement('a');a.className='anchor';a.href='#'+h.id;a.textContent='#';a.title='Link to this section';h.appendChild(a);});
+
+  var content=document.querySelector('.content');
+  var heads=[].slice.call(content.querySelectorAll('h2.chap'));
+  function chapTitle(h){var c=h.cloneNode(true);var n=c.querySelector('.n');if(n)n.remove();var a=c.querySelector('.anchor');if(a)a.remove();return c.textContent.trim();}
+  heads.forEach(function(h){var words=0,el=h.nextElementSibling;while(el&&!(el.matches&&el.matches('h2.chap'))){words+=(el.textContent||'').split(/\s+/).length;el=el.nextElementSibling;}
+    if(words>40){var mins=Math.max(1,Math.round(words/200));var rt=document.createElement('div');rt.className='readtime';rt.innerHTML='&#128338; ~'+mins+' min read &middot; '+words.toLocaleString()+' words';if(h.nextSibling)h.parentNode.insertBefore(rt,h.nextSibling);else h.parentNode.appendChild(rt);}});
+
+  function pagerCell(h,dir){if(!h)return '<span class="empty"></span>';return '<a class="'+dir+'" href="#'+h.id+'"><div class="dir">'+(dir==='prev'?'← Previous':'Next →')+'</div><div class="ttl">'+chapTitle(h)+'</div></a>';}
+  heads.forEach(function(h,i){var pager=document.createElement('div');pager.className='pager';pager.innerHTML=pagerCell(heads[i-1],'prev')+pagerCell(heads[i+1],'next');
+    var next=heads[i+1];if(next){var target=next;if(target.previousElementSibling&&target.previousElementSibling.matches&&target.previousElementSibling.matches('h2.part-divider'))target=target.previousElementSibling;content.insertBefore(pager,target);}else{var bt=document.getElementById('backtop');var hr=content.querySelector('hr');content.insertBefore(pager,hr||bt);}});
+
+  document.querySelectorAll('.content pre').forEach(function(pre){var wrap=document.createElement('div');wrap.className='codewrap';pre.parentNode.insertBefore(wrap,pre);wrap.appendChild(pre);var btn=document.createElement('button');btn.className='copybtn';btn.textContent='Copy';wrap.appendChild(btn);
+    btn.addEventListener('click',function(){var txt=pre.innerText;var done=function(){btn.textContent='Copied!';btn.classList.add('done');setTimeout(function(){btn.textContent='Copy';btn.classList.remove('done');},1400);};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,function(){fallback(txt);done();});}else{fallback(txt);done();}});});
+  function fallback(txt){var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}ta.remove();}
+
+  var navlinks=[].slice.call(document.querySelectorAll('a.navlink'));
+  var readSet={};try{readSet=JSON.parse(LS.get('git-read','{}'))||{};}catch(e){readSet={};}
+  var readFill=document.getElementById('readfill'),readLabel=document.getElementById('readlabel');
+  function refreshProgress(){var total=navlinks.length,done=0;navlinks.forEach(function(a){if(readSet[a.getAttribute('href')]){a.classList.add('read');done++;}else a.classList.remove('read');});readFill.style.width=(total?Math.round(done/total*100):0)+'%';readLabel.textContent=done+' of '+total+' read';}
+  navlinks.forEach(function(a){var chk=a.querySelector('.check');if(chk)chk.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var h=a.getAttribute('href');if(readSet[h])delete readSet[h];else readSet[h]=1;LS.set('git-read',JSON.stringify(readSet));refreshProgress();});});
+  refreshProgress();
+
+  var navByHref={};navlinks.forEach(function(a){navByHref[a.getAttribute('href')]=a;});
+  var spyTargets=navlinks.map(function(a){var el=document.querySelector(a.getAttribute('href'));return el?{a:a,el:el,id:a.getAttribute('href')}:null;}).filter(Boolean);
+  var crumb=document.getElementById('crumb'),prog=document.getElementById('progress'),backtop=document.getElementById('backtop');var curId=null;
+  function onScroll(){var sc=window.pageYOffset,h=document.documentElement.scrollHeight-window.innerHeight;prog.style.width=(h>0?(sc/h*100):0)+'%';backtop.classList.toggle('show',sc>500);
+    var cur=spyTargets[0];for(var i=0;i<spyTargets.length;i++){if(spyTargets[i].el.getBoundingClientRect().top<=120)cur=spyTargets[i];}
+    if(cur&&cur.id!==curId){curId=cur.id;navlinks.forEach(function(a){a.classList.remove('active');});cur.a.classList.add('active');crumb.innerHTML='<b>'+cur.a.textContent.trim()+'</b>';}}
+  document.addEventListener('scroll',onScroll,{passive:true});window.addEventListener('resize',onScroll);window.addEventListener('load',onScroll);onScroll();
+
+  var navsearch=document.getElementById('navsearch');
+  navsearch.addEventListener('input',function(){var q=navsearch.value.trim().toLowerCase();navlinks.forEach(function(a){var hit=a.textContent.toLowerCase().indexOf(q)>=0;a.classList.toggle('hidden',q.length>0&&!hit);});if(q.length>0)document.querySelectorAll('.navpart').forEach(function(p){p.classList.remove('collapsed');});});
+
+  var index=[];
+  document.querySelectorAll('.content h2.chap').forEach(function(h){index.push({id:h.id,text:chapTitle(h),lvl:'Chapter',chap:chapTitle(h)});});
+  (function(){var curChap='';document.querySelectorAll('.content h2.chap, .content h3, .content h4').forEach(function(h){if(h.matches('h2.chap')){curChap=chapTitle(h);return;}var t=h.cloneNode(true);var a=t.querySelector('.anchor');if(a)a.remove();index.push({id:h.id,text:t.textContent.trim(),lvl:(h.tagName==='H3'?'Section':'Topic'),chap:curChap});});})();
+  var palette=document.getElementById('palette'),palinput=document.getElementById('palinput'),palresults=document.getElementById('palresults');var palSel=0,palShown=[];
+  function renderPal(q){q=q.trim().toLowerCase();palShown=!q?index.slice(0,40):index.filter(function(it){return it.text.toLowerCase().indexOf(q)>=0||it.chap.toLowerCase().indexOf(q)>=0;}).slice(0,60);palSel=0;
+    palresults.innerHTML=palShown.length?palShown.map(function(it,i){var ctx=(it.lvl!=='Chapter'&&it.chap)?'<span class="ctx">'+it.chap+'</span>':'';return '<div class="palitem'+(i===0?' sel':'')+'" data-id="'+it.id+'"><span class="lvl">'+it.lvl+'</span><span class="txt">'+it.text+'</span>'+ctx+'</div>';}).join(''):'<div class="palitem"><span class="txt" style="color:var(--faint)">No matches</span></div>';}
+  function openPal(){palette.classList.add('open');palinput.value='';renderPal('');palinput.focus();}
+  function closePal(){palette.classList.remove('open');}
+  function goPal(){var it=palShown[palSel];if(it){closePal();location.hash='#'+it.id;}}
+  document.getElementById('palbtn').addEventListener('click',openPal);
+  palinput.addEventListener('input',function(){renderPal(palinput.value);});
+  palresults.addEventListener('click',function(e){var d=e.target.closest('.palitem');if(d&&d.dataset.id){closePal();location.hash='#'+d.dataset.id;}});
+  palette.addEventListener('click',function(e){if(e.target===palette)closePal();});
+  palinput.addEventListener('keydown',function(e){var items=palresults.querySelectorAll('.palitem');
+    if(e.key==='ArrowDown'){e.preventDefault();palSel=Math.min(palShown.length-1,palSel+1);}else if(e.key==='ArrowUp'){e.preventDefault();palSel=Math.max(0,palSel-1);}else if(e.key==='Enter'){e.preventDefault();goPal();return;}else if(e.key==='Escape'){closePal();return;}else return;
+    items.forEach(function(d,i){d.classList.toggle('sel',i===palSel);});if(items[palSel])items[palSel].scrollIntoView({block:'nearest'});});
+
+  var scrim=document.getElementById('scrim');
+  function closeNav(){body.classList.remove('navopen');}
+  document.getElementById('hamburger').addEventListener('click',function(){body.classList.toggle('navopen');});
+  scrim.addEventListener('click',closeNav);
+  navlinks.forEach(function(a){a.addEventListener('click',function(){if(window.innerWidth<=980)closeNav();});});
+
+  document.addEventListener('keydown',function(e){var tag=(e.target.tagName||'').toLowerCase(),typing=(tag==='input'||tag==='textarea');
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openPal();return;}
+    if(typing)return;
+    if(e.key==='/'){e.preventDefault();openPal();return;}
+    if(e.key==='ArrowRight'||e.key==='ArrowLeft'){var idx=spyTargets.findIndex(function(s){return s.id==='#'+curId;});if(idx<0)idx=0;var go=e.key==='ArrowRight'?spyTargets[idx+1]:spyTargets[idx-1];if(go){e.preventDefault();location.hash=go.id;}}
+    else if(e.key.toLowerCase()==='t'){window.scrollTo({top:0,behavior:'smooth'});}
+    else if(e.key.toLowerCase()==='r'){var a=navByHref['#'+curId];if(a){var h=a.getAttribute('href');if(readSet[h])delete readSet[h];else readSet[h]=1;LS.set('git-read',JSON.stringify(readSet));refreshProgress();}}
+    else if(e.key.toLowerCase()==='b'){body.classList.toggle('navopen');}});
+})();
+</script>
+
+</body>
+</html>
+

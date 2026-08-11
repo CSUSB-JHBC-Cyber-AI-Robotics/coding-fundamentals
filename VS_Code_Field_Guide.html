@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="A practical guide to Visual Studio Code — the interface, the command palette, extensions, the integrated terminal, debugging, Git integration, and remote development over SSH for robotics and lab work.">
+<title>The VS Code Field Guide</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --panel3:#222b3a;
+    --ink:#c9d1d9; --dim:#8b949e; --faint:#6e7681;
+    --cyan:#39d0d8; --orange:#ff9e44; --green:#56d364; --red:#f47272;
+    --amber:#e3b341; --purple:#bc8cff; --blue:#6cb6ff; --pink:#f778ba;
+    --line:#30363d; --code:#0b1622; --sel:#1f6feb44;
+    --shadow:0 8px 30px rgba(0,0,0,.45);
+    --fs:16px; --navw:316px; --topbarh:50px;
+    --accent:var(--orange);
+  }
+  html[data-theme="light"]{
+    --bg:#f6f8fa; --panel:#ffffff; --panel2:#eef1f5; --panel3:#e4e9f0;
+    --ink:#1f2328; --dim:#57606a; --faint:#818b98;
+    --cyan:#0b8c97; --orange:#bc5d18; --green:#1a7f37; --red:#cf222e;
+    --amber:#9a6700; --purple:#8250df; --blue:#0969da; --pink:#bf3989;
+    --line:#d0d7de; --code:#f3f5f8; --sel:#0969da22;
+    --shadow:0 8px 30px rgba(140,149,159,.25);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  ::selection{background:var(--sel)}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;line-height:1.65;font-size:var(--fs);transition:background .25s ease,color .25s ease}
+  a{color:var(--accent)}
+  /* ---- commit-graph theme backdrop ---- */
+  #fx{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.13;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg fill='none' stroke='%23ff9e44' stroke-width='1.5' opacity='0.5'%3E%3Cpath d='M34 0 V120'/%3E%3Cpath d='M34 30 C34 44 78 42 78 56 C78 70 34 68 34 82'/%3E%3C/g%3E%3Cg fill='%23ff9e44' opacity='0.65'%3E%3Ccircle cx='34' cy='16' r='3'/%3E%3Ccircle cx='34' cy='100' r='3'/%3E%3Ccircle cx='78' cy='56' r='3'/%3E%3C/g%3E%3C/svg%3E");background-size:120px 120px;background-repeat:repeat}
+  html[data-theme="light"] #fx{opacity:.07}
+  /* ---- engine ---- */
+  #progress{position:fixed;top:0;left:0;height:3px;width:0;background:linear-gradient(90deg,var(--orange),var(--red));z-index:60;transition:width .1s linear}
+  #topbar{position:fixed;top:0;left:var(--navw);right:0;height:var(--topbarh);z-index:45;display:flex;align-items:center;gap:10px;padding:0 20px;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  #topbar .crumb{font-size:13px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+  #topbar .crumb b{color:var(--ink)}
+  #topbar button,#topbar .kbtn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);height:32px;border-radius:7px;cursor:pointer;font-family:inherit;font-size:13px;padding:0 10px;display:inline-flex;align-items:center;gap:6px;transition:all .15s ease}
+  #topbar button:hover,#topbar .kbtn:hover{border-color:var(--accent);color:var(--accent)}
+  #topbar .icobtn{width:32px;padding:0;justify-content:center;font-size:15px}
+  #hamburger{display:none}
+  .kbtn .k{font-size:11px;color:var(--faint);border:1px solid var(--line);border-radius:4px;padding:0 4px}
+  #nav{position:fixed;top:0;left:0;width:var(--navw);height:100vh;overflow-y:auto;background:color-mix(in srgb,var(--panel) 92%,transparent);border-right:1px solid var(--line);padding:16px 12px 80px;z-index:50;backdrop-filter:blur(6px);scrollbar-width:thin;scrollbar-color:var(--line) transparent;transition:transform .25s ease}
+  #nav::-webkit-scrollbar{width:9px}#nav::-webkit-scrollbar-thumb{background:var(--line);border-radius:5px}
+  #nav .brand{display:flex;align-items:center;gap:9px;margin-bottom:2px}
+  #nav .brand .logo{width:28px;height:28px;flex:none}
+  #nav h1{font-size:14px;color:var(--accent);margin:0;letter-spacing:.3px}
+  #nav .sub{font-size:11px;color:var(--dim);margin:2px 0 10px 37px}
+  #navsearch{width:100%;background:var(--code);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px 10px 8px 30px;font-size:12.5px;font-family:inherit;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238b949e' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:9px center}
+  #navsearch:focus{outline:none;border-color:var(--accent)}
+  #readbar{margin:10px 2px 6px;font-size:11px;color:var(--dim)}
+  #readbar .track{height:5px;background:var(--panel3);border-radius:3px;margin-top:4px;overflow:hidden}
+  #readbar .fill{height:100%;width:0;background:linear-gradient(90deg,var(--orange),var(--red));transition:width .3s ease}
+  .navpart{margin-top:8px}
+  button.part{width:100%;text-align:left;background:none;border:none;cursor:pointer;font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--purple);font-weight:700;padding:8px 6px 4px;display:flex;align-items:center;justify-content:space-between;font-family:inherit}
+  button.part:hover{color:var(--accent)}
+  button.part .caret{transition:transform .2s ease;font-size:9px;color:var(--faint)}
+  .navpart.collapsed button.part .caret{transform:rotate(-90deg)}
+  .navlinks{overflow:hidden;transition:max-height .25s ease;max-height:2400px}
+  .navpart.collapsed .navlinks{max-height:0}
+  a.navlink{display:flex;align-items:center;gap:7px;color:var(--dim);text-decoration:none;font-size:12.5px;padding:4px 8px;border-radius:6px;border-left:2px solid transparent;line-height:1.4;transition:all .12s ease}
+  a.navlink:hover{color:var(--ink);background:var(--panel2)}
+  a.navlink.active{color:var(--accent);border-left-color:var(--accent);background:var(--panel2)}
+  a.navlink.hidden{display:none}
+  a.navlink .check{width:14px;height:14px;flex:none;border:1.5px solid var(--line);border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:transparent;transition:all .15s ease}
+  a.navlink.read .check{background:var(--green);border-color:var(--green);color:#04210c}
+  a.navlink.read{color:var(--faint)}
+  #scrim{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:46;opacity:0;pointer-events:none;transition:opacity .25s}
+  body.navopen #scrim{opacity:1;pointer-events:auto}
+  #wrap{position:relative;z-index:1;margin-left:var(--navw);padding:calc(var(--topbarh) + 4px) 40px 0}
+  .content{max-width:880px;margin:0 auto;padding:30px 0 140px}
+  h2.chap{font-size:29px;color:var(--accent);border-bottom:2px solid var(--accent);padding-bottom:8px;margin:64px 0 4px;scroll-margin-top:64px;position:relative}
+  h2.chap .n{color:var(--faint);font-size:17px;font-weight:400}
+  .readtime{font-size:12px;color:var(--faint);margin:0 0 14px;display:flex;align-items:center;gap:6px}
+  h2.part-divider{font-size:13px;text-transform:uppercase;letter-spacing:3px;color:var(--purple);margin:80px 0 0;padding:0;border:none;scroll-margin-top:64px;font-weight:700}
+  h3{font-size:20px;color:var(--orange);margin:34px 0 8px;scroll-margin-top:64px}
+  h4{font-size:15px;color:var(--purple);margin:22px 0 6px;text-transform:uppercase;letter-spacing:.5px}
+  .anchor{opacity:0;margin-left:8px;font-size:.7em;text-decoration:none;color:var(--faint);transition:opacity .15s}
+  h2.chap:hover .anchor,h3:hover .anchor{opacity:1}
+  p{margin:10px 0}ul,ol{margin:10px 0;padding-left:24px}li{margin:5px 0}
+  strong{color:var(--ink);font-weight:600}html[data-theme="dark"] strong{color:#e6edf3}em{color:var(--ink)}
+  code{background:var(--code);color:var(--accent);padding:1px 6px;border-radius:4px;font-family:'Consolas','Courier New',monospace;font-size:13.5px}
+  .codewrap{position:relative;margin:14px 0}
+  pre{background:var(--code);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:14px 16px;overflow-x:auto;margin:0}
+  pre code{background:none;color:#d6e3f0;padding:0;font-size:13.5px;line-height:1.55}
+  pre .c{color:var(--faint)}pre .k{color:var(--orange)}pre .o{color:var(--green)}pre .a{color:var(--amber)}
+  .copybtn{position:absolute;top:8px;right:8px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);border-radius:6px;font-size:11px;padding:3px 9px;cursor:pointer;opacity:0;transition:all .15s;font-family:inherit}
+  .codewrap:hover .copybtn{opacity:1}.copybtn:hover{border-color:var(--accent);color:var(--accent)}.copybtn.done{color:var(--green);border-color:var(--green)}
+  table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--accent)}
+  tr:nth-child(even) td{background:color-mix(in srgb,var(--ink) 3%,transparent)}
+  table.lookup th{position:sticky;top:var(--topbarh);z-index:2}
+  .box{border-radius:10px;padding:12px 16px;margin:16px 0;border-left:4px solid;position:relative;background:color-mix(in srgb,var(--panel) 70%,transparent)}
+  .box .h{font-weight:700;text-transform:uppercase;letter-spacing:.5px;font-size:12px;margin-bottom:4px;display:flex;align-items:center;gap:7px}
+  .box .h::before{font-size:14px;font-family:'Segoe UI Emoji',sans-serif}
+  .field{border-color:var(--cyan)}.field .h{color:var(--cyan)}.field .h::before{content:"\1F500"}
+  .tip{border-color:var(--green)}.tip .h{color:var(--green)}.tip .h::before{content:"\1F4A1"}
+  .warn{border-color:var(--amber)}.warn .h{color:var(--amber)}.warn .h::before{content:"\26A0\FE0F"}
+  .danger{border-color:var(--red)}.danger .h{color:var(--red)}.danger .h::before{content:"\1F6D1"}
+  .lab{border-color:var(--purple)}.lab .h{color:var(--purple)}.lab .h::before{content:"\1F9EA"}
+  .case{border-color:var(--blue)}.case .h{color:var(--blue)}.case .h::before{content:"\1F4DC"}
+  .cmd{border-color:var(--orange)}.cmd .h{color:var(--orange)}.cmd .h::before{content:"\2328\FE0F"}
+  .intro{font-size:15px;color:var(--dim);font-style:italic;border-left:3px solid var(--line);padding-left:14px;margin:8px 0 20px}
+  .cover{padding:30px 0 22px;border-bottom:1px solid var(--line);margin-bottom:20px}
+  .cover h1{font-size:44px;color:var(--accent);margin:0 0 6px;letter-spacing:.5px;background:linear-gradient(90deg,var(--orange),var(--purple));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .cover .tag{font-size:18px;color:var(--orange);margin-bottom:18px}
+  .cover .by{font-size:14px;color:var(--dim)}
+  .cover .ed{font-size:12px;color:var(--faint);margin-top:14px;letter-spacing:.5px}
+  kbd{background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 6px;font-size:12px;font-family:monospace}
+  hr{border:none;border-top:1px solid var(--line);margin:40px 0}
+  a.xref{color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)}a.xref:hover{border-bottom-style:solid}
+  figure{margin:22px 0;text-align:center}
+  figure svg{max-width:100%;height:auto;background:var(--code);border:1px solid var(--line);border-radius:10px;padding:10px}
+  figcaption{font-size:12.5px;color:var(--dim);margin-top:8px;font-style:italic}
+  svg text{font-family:'Segoe UI',system-ui,sans-serif}
+  svg .box-f{fill:var(--panel2);stroke:var(--orange);stroke-width:1.5}
+  svg .box-w{fill:var(--panel2);stroke:var(--amber);stroke-width:1.5}
+  svg .box-d{fill:var(--panel2);stroke:var(--red);stroke-width:1.5}
+  svg .box-b{fill:var(--panel2);stroke:var(--blue);stroke-width:1.5}
+  svg .box-g{fill:var(--panel2);stroke:var(--green);stroke-width:1.5}
+  svg .box-v{fill:var(--panel2);stroke:var(--purple);stroke-width:1.5}
+  svg .lbl{fill:var(--ink);font-size:13px}svg .lbl-s{fill:var(--dim);font-size:11px}svg .lbl-t{fill:var(--orange);font-size:13px;font-weight:700}
+  svg .arr{stroke:var(--dim);stroke-width:1.5;fill:none}svg .arrm{stroke:var(--ink);stroke-width:1.5;fill:none}
+  .pager{display:flex;gap:14px;margin:50px 0 0;border-top:1px solid var(--line);padding-top:22px}
+  .pager a{flex:1;text-decoration:none;border:1px solid var(--line);border-radius:10px;padding:12px 16px;color:var(--ink);transition:all .15s ease;background:color-mix(in srgb,var(--panel) 60%,transparent)}
+  .pager a:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow)}
+  .pager .dir{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:1px}
+  .pager .ttl{font-size:14px;color:var(--accent);margin-top:3px}.pager .next{text-align:right}.pager .empty{visibility:hidden}
+  #palette{position:fixed;inset:0;z-index:70;display:none;align-items:flex-start;justify-content:center;background:rgba(1,4,9,.6);backdrop-filter:blur(3px);padding-top:12vh}
+  #palette.open{display:flex}
+  #palbox{width:min(620px,92vw);max-height:70vh;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+  #palinput{border:none;border-bottom:1px solid var(--line);background:transparent;color:var(--ink);font-size:16px;padding:16px 18px;font-family:inherit;outline:none}
+  #palresults{overflow-y:auto;padding:6px}
+  .palitem{display:flex;align-items:baseline;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer}
+  .palitem .lvl{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--faint);min-width:46px}
+  .palitem .txt{font-size:14px;color:var(--ink)}.palitem .ctx{font-size:11px;color:var(--faint);margin-left:auto}
+  .palitem.sel,.palitem:hover{background:var(--panel2)}.palitem.sel .txt{color:var(--accent)}
+  #palhint{padding:8px 14px;border-top:1px solid var(--line);font-size:11px;color:var(--faint);display:flex;gap:14px}#palhint b{color:var(--dim);font-weight:600}
+  .backtop{position:fixed;bottom:22px;right:24px;background:var(--panel2);border:1px solid var(--line);color:var(--accent);width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:17px;opacity:0;pointer-events:none;transition:opacity .25s,transform .15s;z-index:40;box-shadow:var(--shadow)}
+  .backtop.show{opacity:.9;pointer-events:auto}.backtop:hover{opacity:1;transform:translateY(-3px)}
+  @media(max-width:980px){:root{--navw:0px}#nav{transform:translateX(-105%);width:300px;box-shadow:var(--shadow)}body.navopen #nav{transform:translateX(0)}#topbar{left:0}#hamburger{display:inline-flex}#wrap{padding-left:18px;padding-right:18px}}
+  @media print{#nav,#topbar,#progress,.backtop,.copybtn,.pager,.anchor,#fx{display:none!important}#wrap{margin:0;padding:0}}
+</style>
+
+<style>
+  :root{--accent:var(--blue)}
+  #progress,#readbar .fill{background:linear-gradient(90deg,var(--blue),var(--cyan))}
+  .cover h1{background:linear-gradient(90deg,var(--blue),var(--cyan))}
+  .cover .tag{color:var(--blue)}
+  h3{color:var(--blue)}
+  h4,h2.part-divider,button.part{color:var(--cyan)}
+  pre .k{color:var(--blue)}
+  .cmd{border-color:var(--blue)}.cmd .h{color:var(--blue)}
+  .lab{border-color:var(--cyan)}.lab .h{color:var(--cyan)}
+  svg .box-f{stroke:var(--blue)}svg .lbl-t{fill:var(--blue)}
+  svg .box-v{stroke:var(--cyan)}
+  #fx{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.4;
+    background:
+      linear-gradient(90deg,rgba(57,208,216,.05) 1px,transparent 1px) 0 0/40px 100%,
+      linear-gradient(rgba(108,182,255,.04) 1px,transparent 1px) 0 0/100% 40px}
+  html[data-theme="light"] #fx{opacity:.3}
+</style>
+
+<style>
+  /* links to Field Guides that live outside this site — kept readable, not clickable */
+  .xref-offsite{color:var(--dim);border-bottom:1px dotted var(--faint);cursor:help}
+</style>
+</head>
+<body>
+<div id="fx" aria-hidden="true"></div>
+<div id="progress"></div>
+
+<nav id="nav">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M23.5 4.5 L28 7 v18 l-4.5 2.5 L12 18.5 L6 23 L3.5 21.5 v-11 L6 9 l6 4.5 z" fill="none" stroke="var(--blue)" stroke-width="1.7" stroke-linejoin="round"/>
+      <path d="M23.5 9.5 v13 L14 16 z" fill="none" stroke="var(--cyan)" stroke-width="1.5" stroke-linejoin="round"/>
+    </svg>
+    <h1>VS CODE FIELD GUIDE</h1>
+  </div>
+  <div class="sub">The Editor, Learned Properly</div>
+  <input id="navsearch" type="text" placeholder="Filter chapters&hellip;" autocomplete="off" spellcheck="false">
+  <div id="readbar"><span id="readlabel">0 of 0 read</span><div class="track"><div class="fill" id="readfill"></div></div></div>
+
+  <div class="navpart">
+    <button class="part">Front Matter <span class="caret">&#9660;</span></button>
+    <div class="navlinks">
+      <a class="navlink" href="#how-to-read"><span class="check">&#10003;</span>How to Read This Book</a>
+    </div>
+  </div>
+  <div class="navpart">
+    <button class="part">Part I &mdash; Getting Oriented <span class="caret">&#9660;</span></button>
+    <div class="navlinks">
+      <a class="navlink" href="#ch1"><span class="check">&#10003;</span>1 &middot; What VS Code Is</a>
+      <a class="navlink" href="#ch2"><span class="check">&#10003;</span>2 &middot; Installing &amp; First Launch</a>
+      <a class="navlink" href="#ch3"><span class="check">&#10003;</span>3 &middot; The Interface</a>
+      <a class="navlink" href="#ch4"><span class="check">&#10003;</span>4 &middot; The Command Palette</a>
+    </div>
+  </div>
+  <div class="navpart">
+    <button class="part">Part II &mdash; Daily Driving <span class="caret">&#9660;</span></button>
+    <div class="navlinks">
+      <a class="navlink" href="#ch5"><span class="check">&#10003;</span>5 &middot; Extensions &amp; the Interpreter</a>
+      <a class="navlink" href="#ch6"><span class="check">&#10003;</span>6 &middot; The Integrated Terminal</a>
+      <a class="navlink" href="#ch7"><span class="check">&#10003;</span>7 &middot; Editing Superpowers</a>
+      <a class="navlink" href="#ch8"><span class="check">&#10003;</span>8 &middot; Navigating a Codebase</a>
+    </div>
+  </div>
+  <div class="navpart">
+    <button class="part">Part III &mdash; Real Work <span class="caret">&#9660;</span></button>
+    <div class="navlinks">
+      <a class="navlink" href="#ch9"><span class="check">&#10003;</span>9 &middot; Debugging</a>
+      <a class="navlink" href="#ch10"><span class="check">&#10003;</span>10 &middot; Git &amp; Source Control</a>
+      <a class="navlink" href="#ch11"><span class="check">&#10003;</span>11 &middot; Remote Development</a>
+      <a class="navlink" href="#ch12"><span class="check">&#10003;</span>12 &middot; Settings &amp; Profiles</a>
+    </div>
+  </div>
+  <div class="navpart">
+    <button class="part">Part IV &mdash; Practice &amp; Reference <span class="caret">&#9660;</span></button>
+    <div class="navlinks">
+      <a class="navlink" href="#ch13"><span class="check">&#10003;</span>13 &middot; Troubleshooting</a>
+      <a class="navlink" href="#ch14"><span class="check">&#10003;</span>14 &middot; Lab Exercises</a>
+      <a class="navlink" href="#ch15"><span class="check">&#10003;</span>15 &middot; Glossary</a>
+      <a class="navlink" href="#appA"><span class="check">&#10003;</span>A &middot; Keyboard Shortcuts</a>
+      <a class="navlink" href="#appB"><span class="check">&#10003;</span>B &middot; Extensions Worth Having</a>
+    </div>
+  </div>
+</nav>
+
+<div id="scrim"></div>
+
+<header id="topbar">
+  <button id="hamburger" class="icobtn" title="Menu" aria-label="Toggle navigation">&#9776;</button>
+  <div class="crumb" id="crumb">The VS Code Field Guide</div>
+  <button class="kbtn" id="palbtn" title="Search everything (Ctrl-K)"><span>&#128269; Search</span> <span class="k">Ctrl K</span></button>
+  <button class="icobtn" id="fsdown" title="Smaller text">A&#8722;</button>
+  <button class="icobtn" id="fsup" title="Larger text">A+</button>
+  <button class="icobtn" id="themebtn" title="Toggle light/dark">&#9789;</button>
+</header>
+
+<div id="wrap">
+<div class="content">
+
+  <div class="cover">
+    <h1>The VS Code Field Guide</h1>
+    <div class="tag">The Editor, Learned Properly</div>
+    <div class="by">Most people use maybe five percent of VS Code: they open files, they type, they save. That works, and it also means doing by hand a dozen things the editor would do instantly &mdash; jumping to a definition, renaming a symbol everywhere at once, stepping through a running program instead of guessing with print statements, editing code on a robot across the room as if it were local. This book covers the parts that actually change how fast you work, in roughly the order you should learn them, and skips the parts you can safely ignore.</div>
+    <div class="ed">A companion in the Field Guide series &middot; pairs with the Python, Git &amp; Linux guides &middot; offline, self-contained</div>
+  </div>
+
+<div class="box tip">
+    <span class="h">This book is interactive</span>
+    Press <kbd>Ctrl</kbd>+<kbd>K</kbd> to search every heading; tick the sidebar <strong>checkboxes</strong> to track progress (or press <kbd>R</kbd>); use <kbd>&larr;</kbd>/<kbd>&rarr;</kbd> to move chapter to chapter; toggle light/dark and text size top-right; hover any command block to <strong>copy</strong> it. Look for <span style="color:var(--blue)">&#x2328;&#xFE0F; Try it</span> boxes &mdash; do them <em>in VS Code</em>, because editor skills are pure muscle memory and reading about a shortcut does nothing. Everything works offline.
+  </div>
+
+  <h2 class="chap" id="how-to-read">How to Read This Book <span class="n">— Front Matter</span></h2>
+  <p class="intro">An editor is a tool you'll spend thousands of hours inside, so a few hours learning it properly pays back at an absurd rate. But you don't need all of it at once — this book is deliberately ordered so you can stop after Part II and already be far ahead of where most people ever get.</p>
+
+  <div class="box field">
+    <span class="h">The journey, part by part</span>
+    <strong>Part I (Getting Oriented)</strong> is installation and the layout &mdash; what every panel is for, and the command palette, which is the single most important thing in the entire application. <strong>Part II (Daily Driving)</strong> is the everyday skill set: extensions and picking the right Python interpreter, the built-in terminal, the editing tricks that save real time, and how to move around a codebase you didn't write. <strong>Part III (Real Work)</strong> is what separates casual use from professional use &mdash; the debugger, Git integration, and remote development, which is how you'll actually work on a robot or lab machine. <strong>Part IV</strong> is troubleshooting, labs, and reference.
+  </div>
+
+  <div class="box tip">
+    <span class="h">How to actually use it</span>
+    Have VS Code open on a second window or monitor and do things as you read. Shortcuts are shown for Windows/Linux with the macOS equivalent in brackets &mdash; as a rule, <kbd>Ctrl</kbd> becomes <kbd>&#8984;</kbd> and <kbd>Alt</kbd> becomes <kbd>&#8997;</kbd>. If you only have twenty minutes, read <a class="xref" href="#ch4">Chapter 4</a> on the command palette and <a class="xref" href="#ch9">Chapter 9</a> on debugging; those two chapters contain most of the value in this book. If you're setting up for a robotics class, <a class="xref" href="#ch5">Chapter 5</a> and <a class="xref" href="#ch11">Chapter 11</a> are the ones you'll need first.
+  </div>
+
+  <h2 class="part-divider" id="partI">Part I — Getting Oriented</h2>
+
+  <h2 class="chap" id="ch1">What VS Code Is <span class="n">— Chapter 1</span></h2>
+  <p class="intro">Knowing what kind of tool this is explains most of its design decisions — including the ones that seem strange at first, like an editor that doesn't understand your language until you tell it to.</p>
+
+  <h3>An editor with an extension habit</h3>
+  <p>VS Code is a <strong>source-code editor</strong>, not an IDE in the traditional sense. Out of the box it edits text, understands JSON and JavaScript, and does very little else. Everything language-specific &mdash; Python autocomplete, C++ navigation, ROS 2 message support &mdash; arrives through <strong>extensions</strong> you install. That's the central design bet: a fast, small core, plus a marketplace that covers everything else.</p>
+  <p>The practical consequence for a newcomer is the one thing worth knowing today: <em>if VS Code seems not to understand your code, you're probably missing an extension</em> (<a class="xref" href="#ch5">Chapter 5</a>). It isn't broken and it isn't a bad editor for your language; it just hasn't been told about it yet.</p>
+
+  <h3>Where it sits</h3>
+  <table>
+    <tr><th></th><th>VS Code</th><th>Full IDE (PyCharm, Visual Studio)</th><th>Terminal editor (vim, nano)</th></tr>
+    <tr><td>Startup</td><td>Fast</td><td>Slow</td><td>Instant</td></tr>
+    <tr><td>Language support</td><td>Via extensions</td><td>Deep, built in</td><td>Minimal</td></tr>
+    <tr><td>Works over SSH</td><td>Yes, seamlessly (<a class="xref" href="#ch11">Ch 11</a>)</td><td>Paid tiers only</td><td>Natively — it's already there</td></tr>
+    <tr><td>Multi-language project</td><td>Excellent</td><td>Usually one primary language</td><td>Fine, but no tooling</td></tr>
+    <tr><td>Best at</td><td>Almost everything, adequately</td><td>One language, superbly</td><td>Quick edits on a server</td></tr>
+  </table>
+  <p>None of these replaces the others. It's genuinely worth knowing enough <code>vim</code> to fix a config file on a machine where you can't install anything &mdash; the <a class="xref" href="Linux_Field_Guide.html#ch20">Linux Field Guide</a> covers that. But for daily project work, VS Code's combination of speed, breadth, and remote support is hard to beat.</p>
+
+  <h3>A note on the name</h3>
+  <p>"Visual Studio Code" and "Visual Studio" are unrelated products that unhelpfully share a brand. Visual Studio is a large Windows-only IDE for .NET and C++. VS Code is the cross-platform editor this book is about. There's also <strong>VSCodium</strong>, a build of the same open-source code without Microsoft's telemetry and branding &mdash; identical to use, though a few Microsoft-licensed extensions (including the Remote-SSH pack in <a class="xref" href="#ch11">Chapter 11</a>) aren't available on it.</p>
+
+  <h2 class="chap" id="ch2">Installing &amp; First Launch <span class="n">— Chapter 2</span></h2>
+  <p class="intro">Ten minutes, most of it optional. The one setting genuinely worth changing on day one is the <code>code</code> command, because it's how the editor and the terminal stop being separate worlds.</p>
+
+  <h3>Install</h3>
+  <table>
+    <tr><th>Platform</th><th>How</th></tr>
+    <tr><td><strong>Ubuntu / Debian</strong></td><td><code>sudo snap install code --classic</code>, or the <code>.deb</code> from code.visualstudio.com</td></tr>
+    <tr><td><strong>Fedora</strong></td><td>Add Microsoft's repo, then <code>sudo dnf install code</code></td></tr>
+    <tr><td><strong>macOS</strong></td><td><code>brew install --cask visual-studio-code</code>, or drag the download to Applications</td></tr>
+    <tr><td><strong>Windows</strong></td><td><code>winget install Microsoft.VisualStudioCode</code>, or the installer</td></tr>
+  </table>
+  <p>Verify with <code>code --version</code>. On Windows, tick <em>"Add to PATH"</em> and both <em>"Open with Code"</em> context-menu options during install &mdash; they're genuinely convenient.</p>
+
+  <h3>The <code>code</code> command</h3>
+  <p>On Linux and Windows this is set up for you. On macOS you have to ask: open the command palette (<a class="xref" href="#ch4">Chapter 4</a>) and run <em>Shell Command: Install 'code' command in PATH</em>. Now the terminal and the editor connect:</p>
+  <pre><code>code .                    # open the current folder — the one you'll use constantly
+code myfile.py            # open one file
+code file1.py file2.py    # open several
+code -d old.py new.py     # open a diff view of two files
+code -r .                 # reuse the existing window instead of a new one
+code --list-extensions    # what's installed
+code --install-extension ms-python.python</code></pre>
+  <p><code>code .</code> is the habit to build. Navigate to a project in your shell, type it, and you're working &mdash; no file dialogs.</p>
+
+  <h3>Folders, not files</h3>
+  <p>This is the one conceptual thing to get right immediately. VS Code is designed around <strong>opening a folder</strong>, not individual files. The open folder becomes your <em>workspace</em>, and nearly everything good depends on it: project-wide search, Git integration, the debugger, per-project settings, and the extensions' ability to understand how your code fits together. Open a lone file and you get a text editor. Open the folder and you get the tool this book describes.</p>
+
+  <div class="box warn">
+    <span class="h">Open the right folder</span>
+    Open your <em>project root</em> &mdash; the folder containing <code>.git</code>, your <code>requirements.txt</code>, and your source. Not your home directory (VS Code will try to index everything you own and crawl), and not a subfolder three levels down (Git integration and project-wide search will both quietly miss things). If you're already in the wrong one, <em>File &rarr; Open Folder</em> is a two-second fix. When people report that VS Code is "slow" or that search "doesn't find things", the opened folder is the cause more often than anything else.
+  </div>
+
+  <h2 class="chap" id="ch3">The Interface <span class="n">— Chapter 3</span></h2>
+  <p class="intro">Five regions, each with one job. Learn what they're called and the rest of the documentation — and this book — stops being ambiguous.</p>
+
+  <figure>
+  <svg viewBox="0 0 620 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="VS Code interface regions: activity bar, side bar, editor, panel, status bar">
+    <rect x="10" y="14" width="44" height="248" rx="5" fill="none" stroke="var(--blue)"/>
+    <text x="32" y="145" text-anchor="middle" fill="var(--blue)" font-size="10" transform="rotate(-90 32 145)">ACTIVITY BAR</text>
+    <rect x="60" y="14" width="130" height="248" rx="5" fill="none" stroke="var(--cyan)"/>
+    <text x="125" y="130" text-anchor="middle" fill="var(--cyan)" font-size="11">SIDE BAR</text>
+    <text x="125" y="150" text-anchor="middle" fill="var(--faint)" font-size="9">explorer · search · git</text>
+    <rect x="196" y="14" width="414" height="176" rx="5" fill="none" stroke="var(--green)"/>
+    <text x="403" y="96" text-anchor="middle" fill="var(--green)" font-size="12">EDITOR GROUP</text>
+    <text x="403" y="116" text-anchor="middle" fill="var(--faint)" font-size="9">tabs, split views, your code</text>
+    <rect x="196" y="196" width="414" height="66" rx="5" fill="none" stroke="var(--amber)"/>
+    <text x="403" y="224" text-anchor="middle" fill="var(--amber)" font-size="11">PANEL</text>
+    <text x="403" y="242" text-anchor="middle" fill="var(--faint)" font-size="9">terminal · problems · output · debug console</text>
+    <rect x="10" y="268" width="600" height="22" rx="4" fill="none" stroke="var(--purple)"/>
+    <text x="310" y="283" text-anchor="middle" fill="var(--purple)" font-size="10">STATUS BAR — branch · errors · interpreter · line:col</text>
+  </svg>
+  <figcaption>The five regions. When documentation says "open the Panel" or "the Activity Bar icon", this is what it means.</figcaption>
+  </figure>
+
+  <table>
+    <tr><th>Region</th><th>What it's for</th><th>Toggle</th></tr>
+    <tr><td><strong>Activity Bar</strong></td><td>The icon strip on the far left; switches what the Side Bar shows</td><td>—</td></tr>
+    <tr><td><strong>Side Bar</strong></td><td>Explorer, Search, Source Control, Debug, Extensions</td><td><kbd>Ctrl</kbd>+<kbd>B</kbd></td></tr>
+    <tr><td><strong>Editor</strong></td><td>Your code. Splits into groups side by side</td><td>—</td></tr>
+    <tr><td><strong>Panel</strong></td><td>Terminal, Problems, Output, Debug Console</td><td><kbd>Ctrl</kbd>+<kbd>J</kbd></td></tr>
+    <tr><td><strong>Status Bar</strong></td><td>Git branch, error count, Python interpreter, cursor position</td><td>—</td></tr>
+  </table>
+
+  <h3>The status bar is a dashboard</h3>
+  <p>It's easy to ignore and it's constantly telling you useful things. Left to right you'll typically find the <strong>remote indicator</strong> (green, far left &mdash; tells you if you're editing over SSH, <a class="xref" href="#ch11">Chapter 11</a>), the <strong>Git branch</strong> and sync state, the <strong>error and warning counts</strong>, and on the right the <strong>language mode</strong>, <strong>line ending</strong>, <strong>encoding</strong>, and &mdash; critically for Python work &mdash; the <strong>selected interpreter</strong>. Every one of those is clickable and most open the relevant picker directly. Glancing at it before asking "why isn't this working" resolves a surprising share of problems.</p>
+
+  <h3>Splitting the editor</h3>
+  <pre><code>Ctrl+\           Split the editor            [Cmd+\]
+Ctrl+1 / 2 / 3   Focus editor group 1, 2, 3  [Cmd+1/2/3]
+Ctrl+W           Close the current tab       [Cmd+W]
+Ctrl+K Z         Zen mode — everything else disappears</code></pre>
+  <p>Splitting is worth the habit for the common case of a test file beside the code it tests, or a config file beside the script that reads it.</p>
+
+  <h2 class="chap" id="ch4">The Command Palette <span class="n">— Chapter 4</span></h2>
+  <p class="intro">If you read one chapter, read this one. Every command in VS Code — every extension's commands too — is reachable from a single search box, which means you never have to know where anything is in a menu.</p>
+
+  <h3>The shortcut</h3>
+  <pre><code>Ctrl+Shift+P     Command palette            [Cmd+Shift+P]
+Ctrl+P           Quick Open — go to file    [Cmd+P]</code></pre>
+  <p><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> opens a fuzzy search over every available action. You don't need exact names &mdash; type "interp" and you'll find <em>Python: Select Interpreter</em>. This is why VS Code's menus don't matter much: describing what you want is faster than remembering where it lives.</p>
+
+  <h3>Quick Open and its prefixes</h3>
+  <p><kbd>Ctrl</kbd>+<kbd>P</kbd> opens a file by fuzzy name &mdash; typing <code>mtst</code> will find <code>my_test_script.py</code>. It also takes prefix characters that switch what you're searching, and these are the real power feature:</p>
+  <table>
+    <tr><th>Type</th><th>Searches</th></tr>
+    <tr><td><code>filename</code></td><td>Files by name</td></tr>
+    <tr><td><code>&gt;command</code></td><td>Commands (same as the palette)</td></tr>
+    <tr><td><code>@symbol</code></td><td>Symbols in the current file — functions, classes</td></tr>
+    <tr><td><code>@:</code></td><td>Symbols in the current file, grouped by kind</td></tr>
+    <tr><td><code>#symbol</code></td><td>Symbols across the whole project</td></tr>
+    <tr><td><code>:42</code></td><td>Jump to line 42</td></tr>
+    <tr><td><code>?</code></td><td>Lists every prefix, if you forget</td></tr>
+  </table>
+  <p><code>@</code> is the sleeper hit here: in a 900-line file you didn't write, <kbd>Ctrl</kbd>+<kbd>P</kbd> then <code>@</code> gives you an instant, searchable table of contents of every function in it.</p>
+
+  <div class="box cmd">
+    <span class="h">Try it — commit to the palette for one session</span>
+    <pre><code>Ctrl+Shift+P  ->  "settings json"     open settings as a file
+Ctrl+Shift+P  ->  "toggle word wrap"  wrap long lines
+Ctrl+Shift+P  ->  "change language"   set syntax for the current file
+Ctrl+Shift+P  ->  "keyboard short"    the full shortcut list
+Ctrl+P        ->  "@"                 outline the current file
+Ctrl+P        ->  ":50"               jump to line 50</code></pre>
+    Deliberately don't touch the menu bar for one working session. It feels slow for about ten minutes and then the menus start feeling slow instead.
+  </div>
+
+  <div class="box field">
+    <span class="h">From the field — the palette is the documentation</span>
+    Here's the habit that makes VS Code click, and it inverts how people usually learn software. When you wonder whether the editor can do something, <strong>don't search the web &mdash; open the palette and type the thing you want</strong>. "sort lines", "convert indentation", "rename symbol", "compare with saved", "record keyboard shortcut". About eighty percent of the time it's already there, often from an extension you forgot you installed. This is also how you discover features you'd never have gone looking for, because the fuzzy search surfaces neighbours of what you typed. People who have used VS Code for years and still navigate by menu are doing perhaps a third of the work they could be, and the difference isn't talent or memorized shortcuts &mdash; it's one reflex, applied constantly.
+  </div>
+
+  <h2 class="part-divider" id="partII">Part II — Daily Driving</h2>
+
+  <h2 class="chap" id="ch5">Extensions &amp; the Interpreter <span class="n">— Chapter 5</span></h2>
+  <p class="intro">Extensions are how VS Code learns your language. This chapter installs the few that matter and then solves the single most common Python-in-VS-Code problem: the editor using a different interpreter than your terminal.</p>
+
+  <h3>Installing extensions</h3>
+  <p><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>X</kbd> opens the Extensions view. Search, click Install. Or from the terminal:</p>
+  <pre><code>code --install-extension ms-python.python
+code --list-extensions
+code --uninstall-extension some.extension</code></pre>
+  <p>Resist installing dozens. Each one costs startup time and some conflict &mdash; two formatters fighting over the same file is a genuinely confusing afternoon. <a class="xref" href="#appB">Appendix B</a> lists the ones worth having.</p>
+
+  <h3>The Python extension</h3>
+  <p><strong>ms-python.python</strong> brings IntelliSense, linting, debugging, test discovery, and notebook support. Install it and reload. It in turn installs Pylance, the language server that does the actual code intelligence.</p>
+
+  <h3>Selecting the interpreter — the important part</h3>
+  <p>The <a class="xref" href="Python_Environment_Field_Guide.html#ch1">Python Environment Field Guide</a> makes the case at length: a Python "environment" is an interpreter plus its packages, and problems come from using the wrong one. VS Code has its <em>own</em> interpreter selection, separate from whatever your terminal has activated. If they disagree, you get the classic symptom &mdash; a squiggly red underline under <code>import numpy</code> in the editor while the same script runs fine in the terminal.</p>
+  <pre><code>Ctrl+Shift+P  ->  Python: Select Interpreter</code></pre>
+  <p>Pick the one inside your project's <code>.venv</code>. VS Code auto-detects a <code>.venv</code> folder in the project root, which is exactly why that naming convention is worth following. Your choice is remembered per project, and the current interpreter is always visible in the status bar &mdash; click it to change.</p>
+
+  <div class="box warn">
+    <span class="h">The editor and the terminal are two different selections</span>
+    Selecting an interpreter tells VS Code which Python to use for IntelliSense, linting, running, and debugging. It does <strong>not</strong> retroactively change terminals you already had open. VS Code auto-activates the selected environment in <em>new</em> integrated terminals, so the reliable move after switching interpreters is to kill the terminal and open a fresh one. When the editor and terminal disagree about whether a package exists, this is nearly always why. The diagnostic from the Python guide settles it in one line &mdash; run <code>python -m pip --version</code> in the terminal and compare its path against the status bar.
+  </div>
+
+  <h3>Linting and formatting</h3>
+  <p>Modern setups use <strong>Ruff</strong> for both, replacing the older flake8/black/isort combination and running fast enough to be invisible. Install the Ruff extension, then set it as the formatter and turn on format-on-save:</p>
+  <pre><code>{
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": { "source.organizeImports": "explicit" }
+  }
+}</code></pre>
+  <p>Format-on-save is worth turning on immediately. It ends every argument about style, produces smaller and more readable Git diffs (<a class="xref" href="Git_GitHub_Field_Guide.html#ch13">Git guide</a>), and removes a whole category of thing you'd otherwise think about while writing code.</p>
+
+  <h2 class="chap" id="ch6">The Integrated Terminal <span class="n">— Chapter 6</span></h2>
+  <p class="intro">A real terminal, docked in the editor, already in your project directory and with your virtual environment activated. It removes the constant window-switching that otherwise eats a working day.</p>
+
+  <h3>Opening and managing</h3>
+  <pre><code>Ctrl+`            Toggle the terminal          [Ctrl+`]
+Ctrl+Shift+`      New terminal instance
+Ctrl+Shift+5      Split the terminal
+Ctrl+PageDown     Next terminal
+Ctrl+Shift+C      Copy   (Ctrl+C sends SIGINT, as it should)
+Ctrl+Shift+V      Paste</code></pre>
+  <p>Note the copy/paste shortcuts. In a terminal, <kbd>Ctrl</kbd>+<kbd>C</kbd> must keep meaning "interrupt the running process" &mdash; so copy moves to <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd>. This trips up everyone once.</p>
+
+  <h3>What it gives you for free</h3>
+  <ul>
+    <li>It <strong>starts in your project folder</strong>, so no <code>cd</code> to get going.</li>
+    <li>It <strong>auto-activates your selected venv</strong> (<a class="xref" href="#ch5">Chapter 5</a>) in new terminals.</li>
+    <li><strong>File paths in output are clickable</strong> &mdash; <kbd>Ctrl</kbd>+click a traceback line to jump straight to that line of that file. This alone is worth using it for.</li>
+    <li>Split terminals let you run a server in one and commands in another, both visible.</li>
+    <li>Over SSH, terminals open <em>on the remote machine</em> (<a class="xref" href="#ch11">Chapter 11</a>).</li>
+  </ul>
+
+  <h3>Choosing your shell</h3>
+  <p>Run <em>Terminal: Select Default Profile</em> from the palette. On Windows the choice matters more than elsewhere: PowerShell is the sane default, but if you're following Linux-flavoured instructions &mdash; which most robotics documentation is &mdash; use WSL or Git Bash so that <code>ls</code>, <code>source</code>, and forward-slash paths behave as written.</p>
+
+  <h2 class="chap" id="ch7">Editing Superpowers <span class="n">— Chapter 7</span></h2>
+  <p class="intro">A dozen shortcuts that replace a lot of tedious manual editing. These are the ones that genuinely pay for themselves; there are hundreds more you can safely never learn.</p>
+
+  <h3>Multi-cursor</h3>
+  <p>The headline feature. Multiple cursors, all typing at once:</p>
+  <pre><code>Alt+Click              Add a cursor wherever you click
+Ctrl+Alt+Up / Down     Add a cursor above / below      [Cmd+Opt+Up/Down]
+Ctrl+D                 Select next occurrence of the selection  [Cmd+D]
+Ctrl+Shift+L           Select ALL occurrences at once   [Cmd+Shift+L]
+Shift+Alt+drag         Column (box) selection
+Escape                 Back to one cursor</code></pre>
+  <p><kbd>Ctrl</kbd>+<kbd>D</kbd> repeatedly is the everyday one: select a variable name, press it four times to grab the next four occurrences, and type the new name once. For renaming a variable properly across a whole project, though, use <a class="xref" href="#ch8">rename symbol</a> instead &mdash; it understands scope, whereas multi-cursor is just clever text matching.</p>
+
+  <h3>Moving and duplicating lines</h3>
+  <pre><code>Alt+Up / Alt+Down            Move the line up / down          [Opt+Up/Down]
+Shift+Alt+Up / Down          Duplicate the line up / down
+Ctrl+Shift+K                 Delete the whole line
+Ctrl+Enter                   New line below, from anywhere in the line
+Ctrl+/                       Toggle comment
+Shift+Alt+A                  Toggle block comment</code></pre>
+  <p><kbd>Alt</kbd>+<kbd>Up</kbd>/<kbd>Down</kbd> becomes reflexive fast &mdash; reordering statements without cut-and-paste, and without ever losing a line to a mistimed paste.</p>
+
+  <h3>Selection and search</h3>
+  <pre><code>Ctrl+L              Select the current line
+Ctrl+Shift+\        Jump to the matching bracket
+Ctrl+F / Ctrl+H     Find / Replace in this file
+Ctrl+Shift+F        Find across the whole project
+Ctrl+Shift+H        Replace across the whole project
+Alt+Enter           (in Find) select every match at once</code></pre>
+  <p>Project-wide search supports regular expressions (the <code>.*</code> icon) and glob filters for included and excluded files. <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> shows a full diff preview before you commit to anything, which makes bulk replacement far less nerve-wracking than it sounds.</p>
+
+  <h3>Snippets and Emmet</h3>
+  <p>Type a prefix and press <kbd>Tab</kbd>. Extensions ship language snippets, and you can define your own via <em>Snippets: Configure Snippets</em> in the palette. For a robotics course, a snippet for your DDS subscriber boilerplate or a ROS 2 node skeleton saves genuine time across a semester.</p>
+
+  <h2 class="chap" id="ch8">Navigating a Codebase <span class="n">— Chapter 8</span></h2>
+  <p class="intro">Most real work is reading code you didn't write — vendor SDKs, a teammate's module, an open-source library. These are the tools that turn "where on earth is this defined" into one keystroke.</p>
+
+  <h3>Jumping around</h3>
+  <pre><code>F12                  Go to definition
+Alt+F12              Peek definition — inline, without leaving the file
+Shift+F12            Find all references
+Ctrl+Click           Same as F12, with the mouse
+Alt+Left / Right     Navigate back / forward through your jumps
+Ctrl+Shift+O         Go to symbol in this file
+Ctrl+T               Go to symbol across the project
+F2                   Rename symbol — everywhere, correctly</code></pre>
+  <p><kbd>F12</kbd> and <kbd>Alt</kbd>+<kbd>&larr;</kbd> are a pair worth internalizing together: dive into a definition, read it, come straight back. That loop is how you read an unfamiliar SDK without losing your place, and it's the difference between "reading the code" and "grepping and hoping".</p>
+
+  <h3>F2 is not find-and-replace</h3>
+  <p><kbd>F2</kbd> (rename symbol) uses the language server's actual understanding of your code. It renames the variable in every place that refers to <em>this</em> variable &mdash; and correctly leaves alone a different variable of the same name in another scope, and the same word inside an unrelated string. Find-and-replace can't distinguish those and will happily corrupt your code. Use <kbd>F2</kbd> for anything that has a definition.</p>
+
+  <h3>Problems and the outline</h3>
+  <p>The <strong>Problems</strong> panel (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd>) aggregates every error and warning across the project from all extensions &mdash; the fastest way to see whether a change broke something elsewhere. The <strong>Outline</strong> view, at the bottom of the Explorer, is a live tree of the current file's classes and functions; in a long vendor file it's the fastest way to see the shape of what you're looking at.</p>
+
+  <div class="box field">
+    <span class="h">From the field — reading beats searching</span>
+    The instinct most beginners bring to an unfamiliar codebase is to search for a string and scroll. It works, slowly, and it teaches you almost nothing about how the code is organized. The professional pattern is to <em>follow the structure</em>: start at the entry point, <kbd>F12</kbd> into the first call you don't understand, read it, <kbd>Alt</kbd>+<kbd>&larr;</kbd> back, continue. Ten minutes of that gives you a mental map of the call graph, which is knowledge that keeps paying off; ten minutes of scrolling gives you one answer. This matters most exactly where robotics students hit it hardest &mdash; a vendor SDK with fifty thousand lines and documentation that assumes you already know the architecture. You are not expected to read it all. You're expected to be able to find the one function you need and understand what it touches, and <kbd>F12</kbd> plus <kbd>Shift</kbd>+<kbd>F12</kbd> is how that's actually done.
+  </div>
+
+  <h2 class="part-divider" id="partIII">Part III — Real Work</h2>
+
+  <h2 class="chap" id="ch9">Debugging <span class="n">— Chapter 9</span></h2>
+  <p class="intro">The single biggest skill upgrade in this book. Print-statement debugging works, but it's slow, it requires you to guess in advance what to print, and it means editing and re-running for every question you think of. A debugger lets you stop the program and look.</p>
+
+  <h3>The core idea</h3>
+  <p>Set a <strong>breakpoint</strong> &mdash; click in the gutter to the left of a line number, and a red dot appears. Run under the debugger and execution pauses <em>at</em> that line, before it runs. Now every variable in scope is visible and inspectable, you can evaluate arbitrary expressions against the live state, and you can step forward one line at a time watching things change.</p>
+
+  <h3>Starting and stepping</h3>
+  <pre><code>F5                Start debugging (or continue to the next breakpoint)
+Ctrl+F5           Run without debugging
+F9                Toggle a breakpoint on the current line
+F10               Step over  — run this line, don't descend into calls
+F11               Step into  — descend into the function being called
+Shift+F11         Step out   — finish this function, return to the caller
+Shift+F5          Stop</code></pre>
+  <p><strong>Step over vs step into</strong> is the distinction to get right: <kbd>F10</kbd> when you trust the function being called, <kbd>F11</kbd> when you suspect it. Most debugging is <kbd>F10</kbd> until something looks wrong, then <kbd>F11</kbd> into the suspect.</p>
+
+  <h3>What you get while paused</h3>
+  <ul>
+    <li><strong>Variables</strong> &mdash; everything in scope, expandable, live.</li>
+    <li><strong>Watch</strong> &mdash; pin an expression (<code>len(joints)</code>, <code>msg.header.stamp</code>) and see it re-evaluate at every step.</li>
+    <li><strong>Call Stack</strong> &mdash; how execution got here. Click any frame to inspect that function's variables.</li>
+    <li><strong>Debug Console</strong> &mdash; a REPL <em>inside the paused program</em>. Run any expression against the real live state. This is the feature that makes debuggers feel like a superpower.</li>
+  </ul>
+
+  <h3>Conditional breakpoints</h3>
+  <p>Right-click a breakpoint &rarr; <em>Edit Breakpoint</em> to attach a condition. This is the killer feature for loops: instead of pressing continue three hundred times, break only when <code>joint_id == 14</code>, or only when <code>abs(torque) &gt; 50</code>. A <strong>logpoint</strong> is the same idea in reverse &mdash; it prints a message and keeps going, giving you print-debugging without editing your source at all.</p>
+
+  <h3>launch.json</h3>
+  <p>For anything beyond "run this file", VS Code stores debug configurations in <code>.vscode/launch.json</code>. Create one from the Run and Debug view:</p>
+  <pre><code>{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Current File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "Robot: teleop with args",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/scripts/teleop.py",
+      "args": ["--iface", "eth0", "--rate", "50"],
+      "env": { "ROBOT_IP": "192.168.123.161" }
+    }
+  ]
+}</code></pre>
+  <p>Set <code>"justMyCode": false</code> when you need to step into library code &mdash; which is exactly what you want when debugging a vendor SDK and you suspect the problem is on their side of the boundary.</p>
+
+  <div class="box cmd">
+    <span class="h">Try it — one real debugging session</span>
+    <pre><code># Save this as buggy.py, then debug it rather than reading it:
+def average(numbers):
+    total = 0
+    for n in numbers:
+        total += n
+    return total / len(numbers)
+
+data = [4, 8, 15, 16, 23, 42]
+print(average(data))
+print(average([]))          # this one explodes</code></pre>
+    Put a breakpoint on <code>return total / len(numbers)</code>, press <kbd>F5</kbd>, and inspect <code>total</code> and <code>numbers</code> on each call. Then add the condition <code>len(numbers) == 0</code> to the breakpoint and run again &mdash; it stops only on the failing call. Finally, in the Debug Console while paused, type <code>numbers</code> and <code>len(numbers)</code>. That's the whole workflow, and it's about ninety seconds of learning.
+  </div>
+
+  <div class="box field">
+    <span class="h">From the field — the hour that changes how you work</span>
+    Learning the debugger is the highest-leverage hour in this book, and almost nobody spends it. The reason is that print statements <em>work</em> &mdash; they're familiar, they need nothing set up, and each individual one feels faster than configuring a launch config. But the costs compound invisibly: every question you think of requires an edit and a re-run, you can only see what you thought to print, and you routinely ship a debug print you forgot to remove. The debugger inverts all of that &mdash; pause once and ask unlimited questions of the real state, including ones you hadn't thought of when you started. In robotics this matters more than in most fields, because re-running isn't free: it may mean re-homing a robot, re-establishing a network session, or re-creating the exact physical situation that triggered the bug. Being able to stop <em>at the moment it goes wrong</em> and look around is worth an enormous amount when each attempt costs you five minutes of setup.
+  </div>
+
+  <h2 class="chap" id="ch10">Git &amp; Source Control <span class="n">— Chapter 10</span></h2>
+  <p class="intro">VS Code's Git integration is genuinely good, and it's especially useful for the two things that are awkward on the command line: reviewing exactly what you changed, and resolving merge conflicts.</p>
+
+  <h3>The Source Control view</h3>
+  <p><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>G</kbd>. Changed files are listed; clicking one opens a <strong>side-by-side diff</strong> against the last commit. The <code>+</code> next to a file stages it, the message box plus <kbd>Ctrl</kbd>+<kbd>Enter</kbd> commits. The <a class="xref" href="Git_GitHub_Field_Guide.html#ch4">Git &amp; GitHub Field Guide</a> covers what these operations actually mean; this chapter is only about the interface.</p>
+
+  <h3>Staging individual lines</h3>
+  <p>This is the feature that's meaningfully better than the CLI. Select some lines inside a diff view, then run <em>Stage Selected Ranges</em> from the palette. You can commit a bug fix while leaving unrelated debug edits in the same file unstaged &mdash; producing clean, single-purpose commits without stashing or manual surgery. The command-line equivalent is <code>git add -p</code>, which is capable but far less pleasant.</p>
+
+  <h3>Inline history with GitLens</h3>
+  <p>The GitLens extension annotates each line with who last changed it and when, and lets you open the commit that introduced any line. On a shared codebase this answers "why on earth is this here" faster than anything else &mdash; you get the commit message and, if the team writes good ones, the reasoning.</p>
+
+  <h3>Merge conflicts</h3>
+  <p>When a merge conflicts, VS Code shows the conflicted region with clickable <em>Accept Current</em> / <em>Accept Incoming</em> / <em>Accept Both</em> / <em>Compare</em> actions, and the three-way merge editor puts both versions and the result side by side. This is a large improvement over editing conflict markers by hand, particularly the first several times you hit one. Conflict resolution itself &mdash; the judgement about which change should win &mdash; is covered in the <a class="xref" href="Git_GitHub_Field_Guide.html#ch7">Git guide</a>.</p>
+
+  <h2 class="chap" id="ch11">Remote Development <span class="n">— Chapter 11</span></h2>
+  <p class="intro">This is the chapter that matters most for robotics and lab work. You can open a folder on a remote machine — a robot, a lab server, a Raspberry Pi — and work on it exactly as if it were local: full IntelliSense, debugging, terminal, extensions, all running on the remote side.</p>
+
+  <h3>How it works</h3>
+  <p>The <strong>Remote-SSH</strong> extension connects over SSH and installs a small VS Code server on the remote machine. Your local window becomes a thin client: the UI is on your laptop, but the files, the terminal, the Python interpreter, the extensions, and the debugger are all on the remote host. Nothing is synced or copied &mdash; you are editing the real files in place.</p>
+  <p>Compared with the alternatives this is transformative. Editing over <code>vim</code> in an SSH session gives you no IntelliSense and no debugger. Editing locally and <code>scp</code>-ing files up gives you a sync problem and a class of bug where the thing you're testing isn't the thing you edited. Remote-SSH removes both.</p>
+
+  <h3>Connecting</h3>
+  <pre><code>Ctrl+Shift+P  ->  Remote-SSH: Connect to Host...</code></pre>
+  <p>It reads your <code>~/.ssh/config</code>, so define hosts there once and they appear in the list:</p>
+  <pre><code># ~/.ssh/config
+Host robot
+    HostName 192.168.123.161
+    User unitree
+    IdentityFile ~/.ssh/id_ed25519
+
+Host labpc
+    HostName lab-workstation.csusb.edu
+    User yourname
+    ForwardAgent yes</code></pre>
+  <p>Then <em>Connect to Host &rarr; robot</em>, and <em>Open Folder</em> to whatever you're working on. Set up key-based authentication first &mdash; VS Code reconnects frequently and typing a password each time gets old immediately. The <a class="xref" href="https://csusb-jhbc-cyber-ai-robotics.github.io/robotics-field-guides/Robotics_Installation_Field_Guide.html#ch4">Robotics Installation Guide</a> covers keys and SSH config for reaching a robot, and the <a class="xref" href="https://csusb-jhbc-cyber-ai-robotics.github.io/robotics-field-guides/Networking_Field_Guide.html#ch1">Networking Field Guide</a> covers the addressing and routing underneath it.</p>
+
+  <h3>Things to know</h3>
+  <ul>
+    <li><strong>Extensions install per-host.</strong> The Python extension on your laptop doesn't help the robot &mdash; install it again on the remote side. VS Code prompts you, and it's a one-time cost per machine.</li>
+    <li><strong>The green indicator</strong> at the far-left of the status bar always tells you where you are. Check it before running anything destructive; running a script on the wrong machine is an easy and memorable mistake.</li>
+    <li><strong>Port forwarding</strong> is automatic for many cases and manual via the Ports panel &mdash; useful for viewing a web dashboard or visualiser running on the robot in your local browser.</li>
+    <li><strong>The remote needs resources.</strong> The VS Code server is not free; on a very small board it competes with your control loop. Prefer connecting to the lab machine that talks to the robot rather than to a tiny embedded controller directly.</li>
+    <li><strong>Also available:</strong> WSL (Windows Subsystem for Linux) and Dev Containers, which use the same mechanism to target a Linux subsystem or a Docker container.</li>
+  </ul>
+
+  <div class="box warn">
+    <span class="h">Know which machine you're on</span>
+    Remote development is convenient enough that it becomes easy to forget the folder you're looking at is on a robot. Two consequences worth internalizing. <strong>Your local <code>.venv</code> is not the remote's</strong> &mdash; interpreter selection, installed packages, and <code>requirements.txt</code> all have to be right on the remote side, and the <a class="xref" href="Python_Environment_Field_Guide.html#ch10">Python guide's robotics chapter</a> covers how that interacts with a system ROS install. <strong>And a script you run from a remote terminal runs on the robot</strong>, with real actuators attached. Before pressing <kbd>F5</kbd>, glance at that green status-bar indicator. It takes half a second and it is the difference between a test and an incident.
+  </div>
+
+  <h2 class="chap" id="ch12">Settings &amp; Profiles <span class="n">— Chapter 12</span></h2>
+  <p class="intro">Settings live at several levels, and knowing which level you're editing prevents the frustration of a change that seems not to take effect — or one that unexpectedly follows you into every project.</p>
+
+  <h3>The layers</h3>
+  <table>
+    <tr><th>Level</th><th>Applies to</th><th>Where it lives</th></tr>
+    <tr><td><strong>User</strong></td><td>You, everywhere</td><td><code>~/.config/Code/User/settings.json</code></td></tr>
+    <tr><td><strong>Workspace</strong></td><td>This project only — overrides User</td><td><code>.vscode/settings.json</code> in the project</td></tr>
+    <tr><td><strong>Remote</strong></td><td>This remote host</td><td>On the remote machine</td></tr>
+    <tr><td><strong>Language</strong></td><td>One language, e.g. <code>"[python]"</code></td><td>Either file, nested</td></tr>
+  </table>
+  <p>Open either with <em>Preferences: Open Settings (JSON)</em> or <em>Open Workspace Settings (JSON)</em> from the palette. Editing the JSON directly is usually faster than hunting through the GUI, and it's the form every piece of documentation quotes.</p>
+
+  <h3>Workspace settings are a team tool</h3>
+  <p>Committing <code>.vscode/settings.json</code> to your repository means everyone on the project gets the same formatter, the same line length, the same excluded folders. For a class, it means students get a working configuration by cloning. Pair it with <code>.vscode/extensions.json</code>, which recommends extensions to anyone who opens the folder:</p>
+  <pre><code>// .vscode/extensions.json
+{ "recommendations": ["ms-python.python", "charliermarsh.ruff", "ms-vscode-remote.remote-ssh"] }</code></pre>
+  <p>Do <em>not</em> commit <code>.vscode/</code> settings that encode your personal machine &mdash; absolute interpreter paths, your username in a path. Those break for everyone else. Commit the shared, project-level decisions; keep the personal ones in User settings.</p>
+
+  <h3>Profiles and Settings Sync</h3>
+  <p><strong>Profiles</strong> bundle settings, extensions, and shortcuts into named sets you can switch between &mdash; a lightweight "Robotics" profile with ROS and Python tooling, a separate one for web work, so neither is slowed by the other's extensions. <strong>Settings Sync</strong> pushes your configuration to a GitHub or Microsoft account and pulls it down on any machine you sign into &mdash; genuinely useful when you work across a laptop and a lab workstation.</p>
+
+  <h2 class="part-divider" id="partIV">Part IV — Practice &amp; Reference</h2>
+
+  <h2 class="chap" id="ch13">Troubleshooting <span class="n">— Chapter 13</span></h2>
+  <p class="intro">The problems that actually come up, and what causes them. Most are configuration rather than bugs.</p>
+  <table>
+    <tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr>
+    <tr><td>Import underlined red, but the script runs fine</td><td>Editor's interpreter ≠ terminal's</td><td><em>Python: Select Interpreter</em> (<a class="xref" href="#ch5">Ch 5</a>)</td></tr>
+    <tr><td>No autocomplete at all</td><td>Language extension missing, or no interpreter selected</td><td>Install it; select an interpreter; reload window</td></tr>
+    <tr><td>Terminal doesn't activate the venv</td><td>Terminal predates the interpreter selection</td><td>Kill the terminal, open a new one</td></tr>
+    <tr><td>Project-wide search misses files</td><td>Wrong folder opened, or <code>files.exclude</code></td><td>Open the project root (<a class="xref" href="#ch2">Ch 2</a>)</td></tr>
+    <tr><td>Editor is sluggish</td><td>Huge folder open (home dir), or too many extensions</td><td>Open a narrower folder; <em>Developer: Startup Performance</em></td></tr>
+    <tr><td>Two formatters fighting on save</td><td>Multiple formatting extensions installed</td><td>Set <code>editor.defaultFormatter</code> per language</td></tr>
+    <tr><td>F12 does nothing</td><td>Language server still indexing, or file not in the workspace</td><td>Wait for the status bar; check the folder is open</td></tr>
+    <tr><td>Remote-SSH won't connect</td><td>SSH itself is failing</td><td>Test <code>ssh host</code> in a plain terminal first</td></tr>
+    <tr><td>Extensions missing after connecting remotely</td><td>Extensions install per-host</td><td>Install them again on the remote (<a class="xref" href="#ch11">Ch 11</a>)</td></tr>
+    <tr><td>Debugger won't stop at a breakpoint</td><td>Running the wrong file, or <code>justMyCode</code></td><td>Check <code>launch.json</code>; set <code>justMyCode: false</code></td></tr>
+    <tr><td>Settings change had no effect</td><td>Overridden at a more specific level</td><td>Check Workspace and language-specific settings</td></tr>
+  </table>
+
+  <h3>The two general fixes</h3>
+  <pre><code>Ctrl+Shift+P  ->  Developer: Reload Window        # fixes a surprising amount
+Ctrl+Shift+P  ->  Extensions: Disable All Installed Extensions
+                                                   # then re-enable to bisect</code></pre>
+  <p><em>Reload Window</em> restarts the editor's internals without losing your session and resolves most extension weirdness. If something is genuinely broken, disabling all extensions and re-enabling them in halves finds the culprit in a few rounds &mdash; the same bisection idea as <code>git bisect</code> in the <a class="xref" href="Git_GitHub_Field_Guide.html#ch21">Git guide</a>.</p>
+
+  <h2 class="chap" id="ch14">Lab Exercises <span class="n">— Chapter 14</span></h2>
+  <p class="intro">Do these in VS Code, not in your head. Editor skill is muscle memory, and the only way to build it is repetition with intent.</p>
+
+  <h3>Lab 1 — Palette only</h3>
+  <ol>
+    <li>Work for thirty minutes without touching the menu bar. Use <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> for everything.</li>
+    <li>Find these purely by palette search: toggle word wrap, change the color theme, open keyboard shortcuts, split the editor, open settings as JSON.</li>
+    <li>In a file over 100 lines, use <kbd>Ctrl</kbd>+<kbd>P</kbd> <code>@</code> to jump to three different functions.</li>
+  </ol>
+
+  <h3>Lab 2 — Interpreter mismatch, on purpose</h3>
+  <ol>
+    <li>Create a project with a <code>.venv</code> and install one package into it (<a class="xref" href="Python_Environment_Field_Guide.html#ch5">Python guide, Ch 5</a>).</li>
+    <li>Deliberately select the <em>system</em> interpreter in VS Code. Observe the red squiggle on your import.</li>
+    <li>Run the file in the integrated terminal with the venv activated &mdash; it works. Explain the contradiction.</li>
+    <li>Switch to the venv interpreter. Confirm the squiggle disappears and the status bar updates.</li>
+  </ol>
+
+  <h3>Lab 3 — Debug instead of print</h3>
+  <ol>
+    <li>Take the <code>buggy.py</code> from <a class="xref" href="#ch9">Chapter 9</a>. Find the bug using only the debugger &mdash; no print statements.</li>
+    <li>Set a conditional breakpoint that fires only on the empty-list call.</li>
+    <li>While paused, use the Debug Console to evaluate three expressions against live state.</li>
+    <li>Add a logpoint that prints <code>len(numbers)</code> on every call without modifying the file.</li>
+  </ol>
+
+  <h3>Lab 4 — Multi-cursor and rename</h3>
+  <ol>
+    <li>Write a file with a variable used eight times, plus the same word inside a string and in a comment.</li>
+    <li>Rename it with <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd> (select all occurrences). Note what it wrongly changed.</li>
+    <li>Undo. Now rename with <kbd>F2</kbd>. Note the difference and explain <em>why</em> it knows better.</li>
+  </ol>
+
+  <h3>Lab 5 — Remote</h3>
+  <ol>
+    <li>Add a host to <code>~/.ssh/config</code> and confirm plain <code>ssh thehost</code> works first.</li>
+    <li>Connect with Remote-SSH and open a folder there. Find the green indicator in the status bar.</li>
+    <li>Open a terminal &mdash; confirm with <code>hostname</code> that it's the remote machine.</li>
+    <li>Install the Python extension on the remote and select an interpreter there. Note that it's a separate selection from your local one.</li>
+  </ol>
+
+  <h2 class="chap" id="ch15">Glossary <span class="n">— Chapter 15</span></h2>
+  <table>
+    <tr><th>Term</th><th>Meaning</th></tr>
+    <tr><td><strong>Workspace</strong></td><td>The folder (or folders) you have open. Most features depend on it.</td></tr>
+    <tr><td><strong>Command Palette</strong></td><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd> — fuzzy search over every command.</td></tr>
+    <tr><td><strong>Quick Open</strong></td><td><kbd>Ctrl</kbd>+<kbd>P</kbd> — fuzzy file open, plus <code>@ # : &gt;</code> prefixes.</td></tr>
+    <tr><td><strong>Activity Bar</strong></td><td>The far-left icon strip that switches the Side Bar's contents.</td></tr>
+    <tr><td><strong>Panel</strong></td><td>The bottom region: terminal, problems, output, debug console.</td></tr>
+    <tr><td><strong>IntelliSense</strong></td><td>Autocomplete, signature help, and inline documentation.</td></tr>
+    <tr><td><strong>Language Server</strong></td><td>The background process providing code intelligence (Pylance for Python).</td></tr>
+    <tr><td><strong>Extension</strong></td><td>An installable add-on; how VS Code learns a language or tool.</td></tr>
+    <tr><td><strong>Interpreter</strong></td><td>The Python executable VS Code uses for this project.</td></tr>
+    <tr><td><strong>Breakpoint</strong></td><td>A marker that pauses execution at a line so you can inspect state.</td></tr>
+    <tr><td><strong>Logpoint</strong></td><td>A breakpoint that prints and continues — print-debugging without editing code.</td></tr>
+    <tr><td><strong>Call Stack</strong></td><td>The chain of function calls that led to the current point.</td></tr>
+    <tr><td><strong>Debug Console</strong></td><td>A REPL running inside the paused program's live state.</td></tr>
+    <tr><td><strong>launch.json</strong></td><td>Stored debug configurations, in <code>.vscode/</code>.</td></tr>
+    <tr><td><strong>settings.json</strong></td><td>Configuration, at User or Workspace level.</td></tr>
+    <tr><td><strong>Profile</strong></td><td>A named bundle of settings, extensions, and shortcuts.</td></tr>
+    <tr><td><strong>Remote-SSH</strong></td><td>Extension that runs VS Code's backend on another machine over SSH.</td></tr>
+    <tr><td><strong>Multi-cursor</strong></td><td>Several cursors editing simultaneously.</td></tr>
+    <tr><td><strong>Peek</strong></td><td>Viewing a definition inline without navigating away.</td></tr>
+  </table>
+
+  <h2 class="chap" id="appA">Keyboard Shortcuts <span class="n">— Appendix A</span></h2>
+  <p class="intro">Windows/Linux shown; on macOS substitute <kbd>&#8984;</kbd> for <kbd>Ctrl</kbd> and <kbd>&#8997;</kbd> for <kbd>Alt</kbd>. The full, editable list is <em>Preferences: Open Keyboard Shortcuts</em>.</p>
+
+  <h3>The essential eight</h3>
+  <table>
+    <tr><th>Keys</th><th>Does</th></tr>
+    <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>P</kbd></td><td>Command palette — the one that matters most</td></tr>
+    <tr><td><kbd>Ctrl</kbd>+<kbd>P</kbd></td><td>Go to file</td></tr>
+    <tr><td><kbd>Ctrl</kbd>+<kbd>`</kbd></td><td>Toggle terminal</td></tr>
+    <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd></td><td>Search the whole project</td></tr>
+    <tr><td><kbd>F12</kbd> / <kbd>Alt</kbd>+<kbd>&larr;</kbd></td><td>Go to definition / go back</td></tr>
+    <tr><td><kbd>F2</kbd></td><td>Rename symbol everywhere</td></tr>
+    <tr><td><kbd>F5</kbd> / <kbd>F9</kbd></td><td>Start debugging / toggle breakpoint</td></tr>
+    <tr><td><kbd>Ctrl</kbd>+<kbd>D</kbd></td><td>Select next occurrence (multi-cursor)</td></tr>
+  </table>
+
+  <h3>Navigation</h3>
+  <pre><code>Ctrl+P            Go to file
+Ctrl+G            Go to line
+Ctrl+Shift+O      Go to symbol in file
+Ctrl+T            Go to symbol in project
+F12               Go to definition
+Alt+F12           Peek definition
+Shift+F12         Find all references
+Alt+Left/Right    Navigate back / forward
+Ctrl+Tab          Cycle open editors</code></pre>
+
+  <h3>Editing</h3>
+  <pre><code>Alt+Up/Down             Move line
+Shift+Alt+Up/Down       Duplicate line
+Ctrl+Shift+K            Delete line
+Ctrl+Enter              Insert line below
+Ctrl+/                  Toggle comment
+Ctrl+D                  Select next occurrence
+Ctrl+Shift+L            Select all occurrences
+Alt+Click               Add cursor
+Ctrl+Alt+Up/Down        Add cursor above / below
+Shift+Alt+F             Format document
+Ctrl+Space              Trigger suggestion</code></pre>
+
+  <h3>View &amp; layout</h3>
+  <pre><code>Ctrl+B            Toggle side bar
+Ctrl+J            Toggle panel
+Ctrl+\            Split editor
+Ctrl+1/2/3        Focus editor group
+Ctrl+W            Close tab
+Ctrl+K Z          Zen mode
+Ctrl+Shift+M      Problems panel
+Ctrl+Shift+X      Extensions
+Ctrl+Shift+G      Source control
+Ctrl+Shift+D      Run and debug</code></pre>
+
+  <h3>Debug</h3>
+  <pre><code>F5           Start / continue
+Ctrl+F5      Run without debugging
+Shift+F5     Stop
+F9           Toggle breakpoint
+F10          Step over
+F11          Step into
+Shift+F11    Step out</code></pre>
+
+  <h2 class="chap" id="appB">Extensions Worth Having <span class="n">— Appendix B</span></h2>
+  <p class="intro">A short list, deliberately. Install what you'll use; every extension costs startup time and adds a chance of conflict.</p>
+
+  <h3>Core</h3>
+  <table>
+    <tr><th>Extension</th><th>Why</th></tr>
+    <tr><td><strong>Python</strong> (ms-python.python)</td><td>IntelliSense, debugging, testing. Non-negotiable for Python.</td></tr>
+    <tr><td><strong>Ruff</strong> (charliermarsh.ruff)</td><td>Fast linting and formatting in one. Replaces flake8 + black + isort.</td></tr>
+    <tr><td><strong>Remote - SSH</strong> (ms-vscode-remote.remote-ssh)</td><td>Work directly on a robot or lab machine (<a class="xref" href="#ch11">Ch 11</a>).</td></tr>
+    <tr><td><strong>GitLens</strong> (eamodio.gitlens)</td><td>Inline blame and history. Answers "why is this here".</td></tr>
+    <tr><td><strong>Jupyter</strong> (ms-toolsai.jupyter)</td><td>Notebooks inside the editor (<span class="xref-offsite" title="Covered in another Field Guide, not published on this site">Jupyter guide</span>).</td></tr>
+  </table>
+
+  <h3>Robotics</h3>
+  <table>
+    <tr><th>Extension</th><th>Why</th></tr>
+    <tr><td><strong>ROS</strong> (ms-iot.vscode-ros)</td><td>Build tasks, launch-file support, message-type awareness.</td></tr>
+    <tr><td><strong>C/C++</strong> (ms-vscode.cpptools)</td><td>Most robotics stacks have a C++ half you'll eventually read.</td></tr>
+    <tr><td><strong>URDF</strong> / <strong>XML</strong></td><td>Robot description files are XML and unpleasant without a schema.</td></tr>
+    <tr><td><strong>YAML</strong> (redhat.vscode-yaml)</td><td>Config and launch files everywhere in ROS 2.</td></tr>
+    <tr><td><strong>Dev Containers</strong></td><td>Reproducible toolchains — matters when a lab has mixed machines.</td></tr>
+  </table>
+
+  <h3>Generally useful</h3>
+  <table>
+    <tr><th>Extension</th><th>Why</th></tr>
+    <tr><td><strong>Error Lens</strong></td><td>Puts errors inline on the line instead of hidden in a tooltip.</td></tr>
+    <tr><td><strong>Code Spell Checker</strong></td><td>Catches typos in comments, docs, and string literals.</td></tr>
+    <tr><td><strong>Markdown All in One</strong></td><td>Preview and TOC generation for READMEs.</td></tr>
+    <tr><td><strong>Rainbow CSV</strong></td><td>Makes sensor logs and MoCap exports readable.</td></tr>
+    <tr><td><strong>Live Share</strong></td><td>Real-time collaborative editing — good for pair debugging on a lab machine.</td></tr>
+  </table>
+
+  <div class="box field">
+    <span class="h">From the field — the short version</span>
+    If you take four things from this book, take these. <strong>Open the folder, not the file</strong> &mdash; almost every feature depends on it. <strong>Use the command palette instead of remembering where things are</strong>; it's faster than menus and it's how you discover what the editor can do. <strong>Learn the debugger</strong>, properly, once &mdash; it is a genuinely different way of understanding a running program than print statements, and the hour it costs comes back within a week. <strong>And check the status bar</strong> before you go looking for a mystery: which interpreter, which branch, which machine. Those four habits are most of the distance between using VS Code as a text editor and using it as the tool it is, and none of them requires memorizing a single additional shortcut.
+  </div>
+
+  <hr>
+  <div class="box field">
+    <span class="h">A closing word</span>
+    An editor is infrastructure. You'll spend more hours in it than in any other program you use, and small frictions repeated ten thousand times add up to real cost &mdash; not just in time, but in the ideas you don't pursue because chasing them felt like too much work. The point of learning the palette, the jumps, and the debugger isn't speed for its own sake; it's that when the cost of investigating something drops far enough, you start investigating things you would otherwise have guessed at. That's the actual upgrade. So pick two shortcuts from <a class="xref" href="#appA">Appendix A</a> you don't currently use, force yourself to use them for a week until they're automatic, and then pick two more. That's the whole method, and it works.
+  </div>
+
+  <a href="#" class="backtop" id="backtop" title="Back to top">&uarr;</a>
+
+</div>
+</div>
+
+<div id="palette" role="dialog" aria-modal="true">
+  <div id="palbox">
+    <input id="palinput" type="text" placeholder="Search the whole book&hellip;" autocomplete="off" spellcheck="false">
+    <div id="palresults"></div>
+    <div id="palhint"><span><b>&uarr;&darr;</b> navigate</span><span><b>&crarr;</b> open</span><span><b>esc</b> close</span></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var root=document.documentElement, body=document.body;
+  var LS={get:function(k,d){try{var v=localStorage.getItem(k);return v===null?d:v;}catch(e){return d;}},set:function(k,v){try{localStorage.setItem(k,v);}catch(e){}}};
+
+  var themeBtn=document.getElementById('themebtn');
+  function applyTheme(t){root.setAttribute('data-theme',t);themeBtn.innerHTML=(t==='light')?'&#9728;':'&#9789;';LS.set('vscode-theme',t);}
+  applyTheme(LS.get('vscode-theme','dark'));
+  themeBtn.addEventListener('click',function(){applyTheme(root.getAttribute('data-theme')==='light'?'dark':'light');});
+
+  var fs=parseInt(LS.get('vscode-fs','16'),10);
+  function applyFs(){fs=Math.max(13,Math.min(21,fs));root.style.setProperty('--fs',fs+'px');LS.set('vscode-fs',fs);}
+  applyFs();
+  document.getElementById('fsup').addEventListener('click',function(){fs+=1;applyFs();});
+  document.getElementById('fsdown').addEventListener('click',function(){fs-=1;applyFs();});
+
+  var collapsed={};try{collapsed=JSON.parse(LS.get('vscode-collapsed','{}'))||{};}catch(e){collapsed={};}
+  [].forEach.call(document.querySelectorAll('.navpart'),function(part){
+    var btn=part.querySelector('button.part');var key=btn.textContent.trim();
+    if(collapsed[key])part.classList.add('collapsed');
+    btn.addEventListener('click',function(){part.classList.toggle('collapsed');collapsed[key]=part.classList.contains('collapsed');LS.set('vscode-collapsed',JSON.stringify(collapsed));});
+  });
+
+  var used={};document.querySelectorAll('[id]').forEach(function(el){used[el.id]=true;});
+  function slug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,50);}
+  document.querySelectorAll('.content h3, .content h4').forEach(function(h){if(h.id)return;var base=slug(h.textContent)||'s',id=base,n=2;while(used[id]){id=base+'-'+(n++);}used[id]=true;h.id=id;});
+  document.querySelectorAll('.content h2.chap, .content h3').forEach(function(h){if(!h.id)return;var a=document.createElement('a');a.className='anchor';a.href='#'+h.id;a.textContent='#';a.title='Link to this section';h.appendChild(a);});
+
+  var content=document.querySelector('.content');
+  var heads=[].slice.call(content.querySelectorAll('h2.chap'));
+  function chapTitle(h){var c=h.cloneNode(true);var n=c.querySelector('.n');if(n)n.remove();var a=c.querySelector('.anchor');if(a)a.remove();return c.textContent.trim();}
+  heads.forEach(function(h){var words=0,el=h.nextElementSibling;while(el&&!(el.matches&&el.matches('h2.chap'))){words+=(el.textContent||'').split(/\s+/).length;el=el.nextElementSibling;}
+    if(words>40){var mins=Math.max(1,Math.round(words/200));var rt=document.createElement('div');rt.className='readtime';rt.innerHTML='&#128338; ~'+mins+' min read &middot; '+words.toLocaleString()+' words';if(h.nextSibling)h.parentNode.insertBefore(rt,h.nextSibling);else h.parentNode.appendChild(rt);}});
+
+  function pagerCell(h,dir){if(!h)return '<span class="empty"></span>';return '<a class="'+dir+'" href="#'+h.id+'"><div class="dir">'+(dir==='prev'?'← Previous':'Next →')+'</div><div class="ttl">'+chapTitle(h)+'</div></a>';}
+  heads.forEach(function(h,i){var pager=document.createElement('div');pager.className='pager';pager.innerHTML=pagerCell(heads[i-1],'prev')+pagerCell(heads[i+1],'next');
+    var next=heads[i+1];if(next){var target=next;if(target.previousElementSibling&&target.previousElementSibling.matches&&target.previousElementSibling.matches('h2.part-divider'))target=target.previousElementSibling;content.insertBefore(pager,target);}else{var bt=document.getElementById('backtop');var hr=content.querySelector('hr');content.insertBefore(pager,hr||bt);}});
+
+  document.querySelectorAll('.content pre').forEach(function(pre){var wrap=document.createElement('div');wrap.className='codewrap';pre.parentNode.insertBefore(wrap,pre);wrap.appendChild(pre);var btn=document.createElement('button');btn.className='copybtn';btn.textContent='Copy';wrap.appendChild(btn);
+    btn.addEventListener('click',function(){var txt=pre.innerText;var done=function(){btn.textContent='Copied!';btn.classList.add('done');setTimeout(function(){btn.textContent='Copy';btn.classList.remove('done');},1400);};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,function(){fallback(txt);done();});}else{fallback(txt);done();}});});
+  function fallback(txt){var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}ta.remove();}
+
+  var navlinks=[].slice.call(document.querySelectorAll('a.navlink'));
+  var readSet={};try{readSet=JSON.parse(LS.get('vscode-read','{}'))||{};}catch(e){readSet={};}
+  var readFill=document.getElementById('readfill'),readLabel=document.getElementById('readlabel');
+  function refreshProgress(){var total=navlinks.length,done=0;navlinks.forEach(function(a){if(readSet[a.getAttribute('href')]){a.classList.add('read');done++;}else a.classList.remove('read');});readFill.style.width=(total?Math.round(done/total*100):0)+'%';readLabel.textContent=done+' of '+total+' read';}
+  navlinks.forEach(function(a){var chk=a.querySelector('.check');if(chk)chk.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var h=a.getAttribute('href');if(readSet[h])delete readSet[h];else readSet[h]=1;LS.set('vscode-read',JSON.stringify(readSet));refreshProgress();});});
+  refreshProgress();
+
+  var navByHref={};navlinks.forEach(function(a){navByHref[a.getAttribute('href')]=a;});
+  var spyTargets=navlinks.map(function(a){var el=document.querySelector(a.getAttribute('href'));return el?{a:a,el:el,id:a.getAttribute('href')}:null;}).filter(Boolean);
+  var crumb=document.getElementById('crumb'),prog=document.getElementById('progress'),backtop=document.getElementById('backtop');var curId=null;
+  function onScroll(){var sc=window.pageYOffset,h=document.documentElement.scrollHeight-window.innerHeight;prog.style.width=(h>0?(sc/h*100):0)+'%';backtop.classList.toggle('show',sc>500);
+    var cur=spyTargets[0];for(var i=0;i<spyTargets.length;i++){if(spyTargets[i].el.getBoundingClientRect().top<=120)cur=spyTargets[i];}
+    if(cur&&cur.id!==curId){curId=cur.id;navlinks.forEach(function(a){a.classList.remove('active');});cur.a.classList.add('active');crumb.innerHTML='<b>'+cur.a.textContent.trim()+'</b>';}}
+  document.addEventListener('scroll',onScroll,{passive:true});window.addEventListener('resize',onScroll);window.addEventListener('load',onScroll);onScroll();
+
+  var navsearch=document.getElementById('navsearch');
+  navsearch.addEventListener('input',function(){var q=navsearch.value.trim().toLowerCase();navlinks.forEach(function(a){var hit=a.textContent.toLowerCase().indexOf(q)>=0;a.classList.toggle('hidden',q.length>0&&!hit);});if(q.length>0)document.querySelectorAll('.navpart').forEach(function(p){p.classList.remove('collapsed');});});
+
+  var index=[];
+  document.querySelectorAll('.content h2.chap').forEach(function(h){index.push({id:h.id,text:chapTitle(h),lvl:'Chapter',chap:chapTitle(h)});});
+  (function(){var curChap='';document.querySelectorAll('.content h2.chap, .content h3, .content h4').forEach(function(h){if(h.matches('h2.chap')){curChap=chapTitle(h);return;}var t=h.cloneNode(true);var a=t.querySelector('.anchor');if(a)a.remove();index.push({id:h.id,text:t.textContent.trim(),lvl:(h.tagName==='H3'?'Section':'Topic'),chap:curChap});});})();
+  var palette=document.getElementById('palette'),palinput=document.getElementById('palinput'),palresults=document.getElementById('palresults');var palSel=0,palShown=[];
+  function renderPal(q){q=q.trim().toLowerCase();palShown=!q?index.slice(0,40):index.filter(function(it){return it.text.toLowerCase().indexOf(q)>=0||it.chap.toLowerCase().indexOf(q)>=0;}).slice(0,60);palSel=0;
+    palresults.innerHTML=palShown.length?palShown.map(function(it,i){var ctx=(it.lvl!=='Chapter'&&it.chap)?'<span class="ctx">'+it.chap+'</span>':'';return '<div class="palitem'+(i===0?' sel':'')+'" data-id="'+it.id+'"><span class="lvl">'+it.lvl+'</span><span class="txt">'+it.text+'</span>'+ctx+'</div>';}).join(''):'<div class="palitem"><span class="txt" style="color:var(--faint)">No matches</span></div>';}
+  function openPal(){palette.classList.add('open');palinput.value='';renderPal('');palinput.focus();}
+  function closePal(){palette.classList.remove('open');}
+  function goPal(){var it=palShown[palSel];if(it){closePal();location.hash='#'+it.id;}}
+  document.getElementById('palbtn').addEventListener('click',openPal);
+  palinput.addEventListener('input',function(){renderPal(palinput.value);});
+  palresults.addEventListener('click',function(e){var d=e.target.closest('.palitem');if(d&&d.dataset.id){closePal();location.hash='#'+d.dataset.id;}});
+  palette.addEventListener('click',function(e){if(e.target===palette)closePal();});
+  palinput.addEventListener('keydown',function(e){var items=palresults.querySelectorAll('.palitem');
+    if(e.key==='ArrowDown'){e.preventDefault();palSel=Math.min(palShown.length-1,palSel+1);}else if(e.key==='ArrowUp'){e.preventDefault();palSel=Math.max(0,palSel-1);}else if(e.key==='Enter'){e.preventDefault();goPal();return;}else if(e.key==='Escape'){closePal();return;}else return;
+    items.forEach(function(d,i){d.classList.toggle('sel',i===palSel);});if(items[palSel])items[palSel].scrollIntoView({block:'nearest'});});
+
+  var scrim=document.getElementById('scrim');
+  function closeNav(){body.classList.remove('navopen');}
+  document.getElementById('hamburger').addEventListener('click',function(){body.classList.toggle('navopen');});
+  scrim.addEventListener('click',closeNav);
+  navlinks.forEach(function(a){a.addEventListener('click',function(){if(window.innerWidth<=980)closeNav();});});
+
+  document.addEventListener('keydown',function(e){var tag=(e.target.tagName||'').toLowerCase(),typing=(tag==='input'||tag==='textarea');
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openPal();return;}
+    if(typing)return;
+    if(e.key==='/'){e.preventDefault();openPal();return;}
+    if(e.key==='ArrowRight'||e.key==='ArrowLeft'){var idx=spyTargets.findIndex(function(s){return s.id==='#'+curId;});if(idx<0)idx=0;var go=e.key==='ArrowRight'?spyTargets[idx+1]:spyTargets[idx-1];if(go){e.preventDefault();location.hash=go.id;}}
+    else if(e.key.toLowerCase()==='t'){window.scrollTo({top:0,behavior:'smooth'});}
+    else if(e.key.toLowerCase()==='r'){var a=navByHref['#'+curId];if(a){var h=a.getAttribute('href');if(readSet[h])delete readSet[h];else readSet[h]=1;LS.set('vscode-read',JSON.stringify(readSet));refreshProgress();}}
+    else if(e.key.toLowerCase()==='b'){body.classList.toggle('navopen');}});
+})();
+</script>
+
+</body>
+</html>
