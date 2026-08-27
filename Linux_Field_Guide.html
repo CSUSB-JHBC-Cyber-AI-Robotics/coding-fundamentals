@@ -239,6 +239,7 @@
       <a class="navlink" href="#appA"><span class="check">&#10003;</span>A &middot; Command Cheat-Sheet</a>
       <a class="navlink" href="#appB"><span class="check">&#10003;</span>B &middot; Filesystem &amp; Config Map</a>
       <a class="navlink" href="#appC"><span class="check">&#10003;</span>C &middot; Distro &amp; Shortcut Reference</a>
+      <a class="navlink" href="#sources"><span class="check">&#10003;</span>&#128218; Sources &amp; Further Reading</a>
     </div>
   </div>
 </nav>
@@ -426,8 +427,8 @@
 
   <h3>Opening a terminal &amp; the prompt</h3>
   <p>On a desktop: it's an app called Terminal / Konsole / GNOME Terminal (often <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>T</kbd>). On a server: it's all you get. You'll see a <strong>prompt</strong> like:</p>
-  <pre><code>desmond@laptop:~$ </code></pre>
-  <p>Read it: <strong>user</strong> (<code>desmond</code>) <strong>@ host</strong> (<code>laptop</code>), then the <strong>current directory</strong> (<code>~</code> means your home), then a symbol: <strong><code>$</code></strong> = normal user, <strong><code>#</code></strong> = root/administrator (be careful! &mdash; <a class="xref" href="#ch12">Chapter 12</a>). The prompt waits for you to type a command and press Enter. That's the whole interface, and it's the same everywhere.</p>
+  <pre><code>student@laptop:~$ </code></pre>
+  <p>Read it: <strong>user</strong> (<code>student</code>) <strong>@ host</strong> (<code>laptop</code>), then the <strong>current directory</strong> (<code>~</code> means your home), then a symbol: <strong><code>$</code></strong> = normal user, <strong><code>#</code></strong> = root/administrator (be careful! &mdash; <a class="xref" href="#ch12">Chapter 12</a>). The prompt waits for you to type a command and press Enter. That's the whole interface, and it's the same everywhere.</p>
 
   <div class="box field">
     <span class="h">From the field — get comfortable being uncomfortable in the terminal</span>
@@ -1332,7 +1333,7 @@ vim ~/test.txt          <span class="c"># open again; press i, change something,
   <pre><code><span class="c"># ~/.ssh/config</span>
 Host myserver
     HostName 192.168.1.50
-    User desmond
+    User student
     Port 2222
 <span class="c"># now just: ssh myserver</span></code></pre>
 
@@ -1853,6 +1854,39 @@ tmux   tmux attach   Ctrl-b d    persistent sessions</code></pre>
     <span class="h">A closing word</span>
     Linux feels like a wall on day one and a superpower by month three &mdash; and the only thing between those two points is reps. Every expert you've ever seen fly through a terminal was once staring at a blinking cursor with no idea what to type. The difference is they kept a terminal open and kept trying things. You now have the map; what's left is the mileage. Break a VM, fix it, automate something tedious, live in the shell until it's faster than the mouse. The command line is the most durable, transferable skill in all of computing &mdash; it has barely changed in 50 years and it runs the internet. Learn it well and it serves you for the rest of your career. Now open a terminal.
   </div>
+
+  <h2 class="chap" id="sources">Sources &amp; Further Reading <span class="n">&mdash; Appendix</span></h2>
+  <p class="intro">This guide teaches behaviour you can verify at your own prompt, so the primary source for most claims is the machine in front of you &mdash; run the command and read <code>man</code> and you have checked it. The references below are the authoritative documentation and standards behind the parts that are easy to get confidently wrong: the filesystem layout, the permission model, the shell language, and the release calendars that decide which version you should be on.</p>
+
+  <div class="box warn">
+    <span class="h">Verify against your own system</span>
+    Every command, flag, and path here was checked against the sources below on <strong>27 August 2026</strong>. Linux distributions and their tooling move: paths get relocated, defaults change between releases, and support windows expire. Where this guide and the current official documentation or <code>man</code> page disagree, <strong>the official documentation is right</strong> &mdash; and the link to it is here.
+  </div>
+
+  <h3>Standards &amp; specifications</h3>
+  <table>
+    <tr><th>Source</th><th>Publisher</th><th>Used for</th></tr>
+    <tr><td><a href="https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html" target="_blank" rel="noopener noreferrer">Filesystem Hierarchy Standard 3.0</a></td><td>Linux Foundation</td><td>The <code>/etc</code>, <code>/var</code>, <code>/usr</code>, <code>/home</code> layout and the config-map appendix</td></tr>
+    <tr><td><a href="https://pubs.opengroup.org/onlinepubs/9799919799/" target="_blank" rel="noopener noreferrer">POSIX.1-2024 (Single UNIX Specification, Issue 8)</a></td><td>The Open Group / IEEE</td><td>Shell grammar, utility behaviour, and the file-permission model behind <code>chmod</code></td></tr>
+  </table>
+
+  <h3>Official tool &amp; kernel documentation</h3>
+  <table>
+    <tr><th>Source</th><th>Publisher</th><th>Used for</th></tr>
+    <tr><td><a href="https://man7.org/linux/man-pages/man1/bash.1.html" target="_blank" rel="noopener noreferrer">bash(1) manual page</a></td><td>man7.org (Linux <code>man-pages</code>)</td><td>Shell syntax, redirection, pipelines, globbing, and the shebang mechanism</td></tr>
+    <tr><td><a href="https://man7.org/linux/man-pages/man1/chmod.1.html" target="_blank" rel="noopener noreferrer">chmod(1) manual page</a></td><td>man7.org (Linux <code>man-pages</code>)</td><td>Numeric (755/644/600) and symbolic permission syntax in the <code>rwx</code> chapter</td></tr>
+    <tr><td><a href="https://man7.org/linux/man-pages/dir_section_1.html" target="_blank" rel="noopener noreferrer">Linux user-command manual pages (section 1)</a></td><td>man7.org (Linux <code>man-pages</code>)</td><td>The core file/text utilities &mdash; <code>ls</code>, <code>cp</code>, <code>rm</code>, <code>find</code>, <code>du</code>, <code>df</code></td></tr>
+    <tr><td><a href="https://man7.org/linux/man-pages/man1/systemctl.1.html" target="_blank" rel="noopener noreferrer">systemctl(1) manual page</a></td><td>man7.org (Linux <code>man-pages</code>)</td><td>Service management &mdash; starting, enabling, and reading the status of units</td></tr>
+    <tr><td><a href="https://man.openbsd.org/ssh_config" target="_blank" rel="noopener noreferrer">ssh_config(5)</a> &middot; <a href="https://man.openbsd.org/ssh-keygen" target="_blank" rel="noopener noreferrer">ssh-keygen(1)</a></td><td>OpenSSH / OpenBSD</td><td>SSH keys, the <code>600</code>/<code>700</code> permission requirement, and <code>~/.ssh</code> layout</td></tr>
+    <tr><td><a href="https://docs.kernel.org/" target="_blank" rel="noopener noreferrer">The Linux Kernel documentation</a></td><td>kernel.org</td><td>Processes, filesystems, and the mounting/<code>fstab</code> material</td></tr>
+  </table>
+
+  <h3>Release calendars &amp; background</h3>
+  <table>
+    <tr><th>Source</th><th>Publisher</th><th>Used for</th></tr>
+    <tr><td><a href="https://ubuntu.com/about/release-cycle" target="_blank" rel="noopener noreferrer">Ubuntu release cycle &amp; LTS windows</a></td><td>Canonical</td><td>"Take an LTS" advice and the fixed-vs-rolling release comparison</td></tr>
+    <tr><td><a href="https://www.top500.org/statistics/list/" target="_blank" rel="noopener noreferrer">TOP500 supercomputer statistics</a></td><td>TOP500.org</td><td>The claim that effectively all of the world's fastest computers run Linux</td></tr>
+  </table>
 
   <a href="#" class="backtop" id="backtop" title="Back to top">&uarr;</a>
 

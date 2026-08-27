@@ -229,6 +229,7 @@
       <a class="navlink" href="#appA"><span class="check">&#10003;</span>A &middot; Command Cheat-Sheet</a>
       <a class="navlink" href="#appB"><span class="check">&#10003;</span>B &middot; Workflow &amp; .gitignore</a>
       <a class="navlink" href="#appC"><span class="check">&#10003;</span>C &middot; "How Do I Undo X?"</a>
+      <a class="navlink" href="#sources"><span class="check">&#10003;</span>&#128218; Sources &amp; Further Reading</a>
     </div>
   </div>
 </nav>
@@ -1737,6 +1738,38 @@ git config --global core.excludesfile ~/.gitignore_global</code></pre>
     <span class="h">A closing word</span>
     Git rewards understanding over memorization like few tools do. The person who memorized ten commands panics the moment something unexpected happens; the person who understands the model (Chapter 2) reasons their way out of anything, because they know what Git is actually doing under the hood. You now have that model &mdash; snapshots, the three areas, the moving branch pointers, the safety net of the reflog. The commands are just the interface to those ideas. So keep a practice repo around, make a mess in it on purpose, and recover &mdash; that's how the fear dissolves and the fluency arrives. Git underpins essentially all modern software collaboration; getting genuinely comfortable with it pays dividends in every technical role you'll ever have. Now go make a commit.
   </div>
+
+  <h2 class="chap" id="sources">Sources &amp; Further Reading <span class="n">&mdash; Appendix</span></h2>
+  <p class="intro">Git's behaviour is checkable in a scratch repo &mdash; the "Try it" boxes exist so you watch the pointers move rather than take it on faith &mdash; and the reference below is the source of record for everything else. <em>Pro Git</em> is the free, canonical book; the per-command manual pages are the exact specification of flags and edge cases; and the GitHub docs cover the collaboration workflow that lives on top of Git rather than inside it.</p>
+
+  <div class="box warn">
+    <span class="h">Verify against your own Git</span>
+    Every command and flag here was checked against the sources below on <strong>27 August 2026</strong>. Git and GitHub both evolve &mdash; new porcelain commands appear (<code>git switch</code>/<code>restore</code> split off from <code>checkout</code>), defaults shift, and GitHub's UI moves. Where this guide and the current <code>git help &lt;command&gt;</code> or official docs disagree, <strong>the official documentation is right</strong>.
+  </div>
+
+  <h3>The canonical reference</h3>
+  <table>
+    <tr><th>Source</th><th>Publisher</th><th>Used for</th></tr>
+    <tr><td><a href="https://git-scm.com/book/en/v2" target="_blank" rel="noopener noreferrer"><em>Pro Git</em> (2nd ed.), Chacon &amp; Straub</a></td><td>git-scm.com (free, CC BY-NC-SA)</td><td>The mental model &mdash; snapshots, the three areas, branches as pointers, the reflog safety net</td></tr>
+  </table>
+
+  <h3>Command manual pages</h3>
+  <table>
+    <tr><th>Source</th><th>Publisher</th><th>Used for</th></tr>
+    <tr><td><a href="https://git-scm.com/docs/git-merge" target="_blank" rel="noopener noreferrer">git-merge</a></td><td>Git project</td><td>Fast-forward vs three-way merges, <code>--no-ff</code>, <code>--abort</code>, and conflict resolution</td></tr>
+    <tr><td><a href="https://git-scm.com/docs/git-rebase" target="_blank" rel="noopener noreferrer">git-rebase</a></td><td>Git project</td><td>Replaying commits, interactive rebase (<code>-i</code>), and <code>--continue</code>/<code>--abort</code></td></tr>
+    <tr><td><a href="https://git-scm.com/docs/git-switch" target="_blank" rel="noopener noreferrer">git-switch</a> &middot; <a href="https://git-scm.com/docs/git-restore" target="_blank" rel="noopener noreferrer">git-restore</a></td><td>Git project</td><td>The newer commands that split the overloaded <code>git checkout</code>; introduced in Git 2.23 (<a href="https://github.blog/open-source/git/highlights-from-git-2-23/" target="_blank" rel="noopener noreferrer">release notes</a>)</td></tr>
+    <tr><td><a href="https://git-scm.com/docs/gitignore" target="_blank" rel="noopener noreferrer">gitignore</a></td><td>Git project</td><td>Ignore-pattern syntax and why <code>.env</code> stays out of the repo</td></tr>
+  </table>
+
+  <h3>Collaboration &amp; conventions</h3>
+  <table>
+    <tr><th>Source</th><th>Publisher</th><th>Used for</th></tr>
+    <tr><td><a href="https://docs.github.com/en/get-started/using-github/github-flow" target="_blank" rel="noopener noreferrer">GitHub flow</a></td><td>GitHub</td><td>The branch &rarr; commit &rarr; pull request &rarr; merge collaboration loop</td></tr>
+    <tr><td><a href="https://docs.github.com/en/pull-requests" target="_blank" rel="noopener noreferrer">Pull requests documentation</a></td><td>GitHub</td><td>Opening, reviewing, and merging PRs; the review workflow in the collaboration chapters</td></tr>
+    <tr><td><a href="https://www.conventionalcommits.org/en/v1.0.0/" target="_blank" rel="noopener noreferrer">Conventional Commits 1.0.0</a></td><td>Conventional Commits</td><td>The structured commit-message convention referenced in the workflow chapter</td></tr>
+    <tr><td><a href="https://semver.org/" target="_blank" rel="noopener noreferrer">Semantic Versioning 2.0.0</a></td><td>SemVer</td><td>The <code>MAJOR.MINOR.PATCH</code> tagging scheme used when releasing</td></tr>
+  </table>
 
   <a href="#" class="backtop" id="backtop" title="Back to top">&uarr;</a>
 
