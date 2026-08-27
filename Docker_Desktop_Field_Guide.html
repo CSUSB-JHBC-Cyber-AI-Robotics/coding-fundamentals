@@ -353,7 +353,7 @@
   <p class="intro">This is the single most important idea in the book, and it explains almost every surprising thing Docker does — including why Docker Desktop quietly runs a virtual machine on your Mac or Windows laptop.</p>
 
   <h3>Docker's own definition</h3>
-  <p>Docker's documentation is admirably blunt about it. A container is <strong>"an isolated process"</strong> &mdash; not a small computer, not a lightweight VM, but a process running on your machine's existing kernel with a restricted view of the world. It is <em>self-contained</em> in the sense that it carries <strong>"everything it needs to function with no reliance on any pre-installed dependencies on the host machine."</strong></p>
+  <p>Docker's documentation is admirably blunt about it: containers are <strong>"isolated processes"</strong> for each of your app's components &mdash; not small computers, not lightweight VMs, but processes running on your machine's existing kernel with a restricted view of the world. Each is <em>self-contained</em>: it has <strong>"everything it needs to function with no reliance on any pre-installed dependencies."</strong></p>
   <p>The contrast Docker draws with virtual machines is the part worth memorizing. A virtual machine runs <strong>"an entire operating system with its own kernel, hardware drivers, programs, and applications"</strong>; a container is <strong>"simply an isolated process with all of the files it needs to run."</strong> Because containers <strong>"share the same kernel,"</strong> you can <strong>"run more applications on less infrastructure."</strong></p>
 
   <figure>
@@ -754,9 +754,9 @@ sudo hdiutil detach /Volumes/Docker</code></pre>
   <p>Recall from <a class="xref" href="#ch2">Chapter 2</a> that macOS has no Linux kernel, so Docker Desktop runs one in a VM. Which hypervisor does that is configurable in <em>Settings &rarr; General &rarr; Virtual Machine Manager</em>.</p>
   <table>
     <tr><th>Option</th><th>Notes</th></tr>
-    <tr><td><strong>Docker VMM</strong></td><td>Docker's own container-optimized hypervisor: better memory efficiency, faster file I/O, quicker startup. Apple silicon only, and <strong>the default since Docker Desktop 4.86</strong>. Needs at least 4&nbsp;GB allocated.</td></tr>
-    <tr><td><strong>Apple Virtualization Framework</strong></td><td>Apple's own framework; the recommended alternative if Docker VMM misbehaves.</td></tr>
-    <tr><td><strong>HyperKit</strong></td><td>Deprecated legacy option, Intel Macs only.</td></tr>
+    <tr><td><strong>Docker VMM</strong></td><td>Docker's own &mdash; <em>"a container-optimized hypervisor"</em> in its documentation's words: returns idle memory to the host, improves file I/O between container and host, and reduces engine and container start-up time. Requires at least 4&nbsp;GB of memory allocated to the VM. (Also exists as a backend choice on Windows.)</td></tr>
+    <tr><td><strong>Apple Virtualization framework</strong></td><td>Apple's own &mdash; described by Docker as <em>"a stable and well-established option"</em>; the one to switch to if Docker VMM misbehaves.</td></tr>
+    <tr><td><strong>HyperKit</strong></td><td>Legacy, Intel Macs only, deprecated &mdash; Docker recommends switching to the Apple Virtualization framework.</td></tr>
   </table>
   <p>Changing it requires <strong>Apply &amp; restart</strong>. If you hit odd filesystem or networking behaviour on an Apple silicon Mac, switching between Docker VMM and the Apple Virtualization Framework is a cheap, high-yield thing to try before anything more elaborate.</p>
 
@@ -815,7 +815,7 @@ sudo apt install ./docker-desktop-amd64.deb</code></pre>
     Installing a local <code>.deb</code> produces <code>N: Download is performed unsandboxed as root, as file '/home/user/Downloads/docker-desktop.deb' couldn't be accessed by user '_apt'.</code> Docker's documentation says explicitly that this is normal and can be ignored. It is not a failure and nothing is wrong.
   </div>
 
-  <p>The installer sets binary capabilities so containers can bind privileged ports, adds a Kubernetes DNS entry to <code>/etc/hosts</code>, and creates symlinks so the Docker CLI is on your <code>PATH</code>.</p>
+  <p>The installer sets binary capabilities so containers can bind privileged ports, adds a Kubernetes DNS entry to <code>/etc/hosts</code>, and links the CLI into place (a symlink from <code>/usr/local/bin/com.docker.cli</code> to <code>/usr/bin/docker</code>).</p>
 
   <h3>Starting it</h3>
   <p>Launch <em>Docker Desktop</em> from your applications menu and accept the subscription terms, or use systemd's user instance:</p>
@@ -1150,9 +1150,9 @@ docker run -d -P nginx                     # publish every EXPOSEd port to rando
   <p>By default a published port listens on <em>all</em> of your machine's network interfaces &mdash; other devices on your network can reach it. Prefixing <code>127.0.0.1:</code> restricts it to your own machine, a sensible default for anything you would not deliberately serve to the whole lab's Wi-Fi.</p>
 
   <h3>Containers reaching each other</h3>
-  <p>The second skill arrives the moment you have two containers &mdash; an app and its database. The wrong instinct is to publish the database's port and connect via <code>localhost</code>; the right tool is a <strong>user-defined network</strong>. Docker's documentation is explicit about the difference: on the default bridge network, containers <em>"cannot refer to each other by name"</em>, while on a user-defined network they <em>"communicate with each other using container IP addresses or container names."</em> Docker's embedded DNS server (at <code>127.0.0.11</code> inside each container) resolves container names automatically &mdash; and Docker explicitly recommends user-defined networks for exactly this.</p>
+  <p>The second skill arrives the moment you have two containers &mdash; an app and its database. The wrong instinct is to publish the database's port and connect via <code>localhost</code>; the right tool is a <strong>user-defined network</strong>. Docker's documentation is explicit about the difference: on the default bridge network, containers <em>"cannot refer to each other by name"</em>, while on a user-defined network they <em>"communicate with each other using container IP addresses or container names."</em> Docker's embedded DNS server (at <code>127.0.0.11</code> inside each container) resolves container names automatically. Docker's own assessment is unambiguous: <em>"User-defined bridge networks are superior to the default bridge network,"</em> which <em>"is considered a legacy detail of Docker and is not recommended for production use."</em></p>
   <pre><code>docker network create mynet
-docker run -d --network mynet --name db postgres:17
+docker run -d --network mynet --name db postgres:18
 docker run -d --network mynet --name app -p 8000:8000 myapp
 <span class="c"># inside "app", the database is reachable as host "db", port 5432 —
 # no published port, no IP address, just the container's name</span>
@@ -1182,13 +1182,13 @@ docker network connect mynet existing-container   # attach a running container t
   <h3>Volumes — Docker-managed storage</h3>
   <p>A volume is <em>"a storage mechanism that provide the ability to persist data beyond the lifecycle of an individual container."</em> Docker manages where it physically lives; you refer to it by name. Docker's own analogy: it is <em>"like providing a shortcut or symlink from inside the container to outside the container."</em></p>
   <pre><code>docker volume create mydata
-docker run -d -v mydata:/var/lib/postgresql --name db postgres:17
+docker run -d -v mydata:/var/lib/postgresql --name db postgres:18
 <span class="c">#              &#9474;      &#9492; the path INSIDE the container the software writes to
 #              &#9492; the volume name — everything written to that path lands here</span>
 
 docker volume ls
 docker rm -f db                       # kill the container entirely...
-docker run -d -v mydata:/var/lib/postgresql --name db2 postgres:17
+docker run -d -v mydata:/var/lib/postgresql --name db2 postgres:18
 <span class="c"># ...and the new container has all the old data. That is the whole trick.</span></code></pre>
   <p>The container's half of the mapping is not your choice &mdash; it is wherever the containerized software keeps its data, documented on the image's Docker Hub page (<code>/var/lib/postgresql</code> for Postgres, <code>/data</code> for Redis, and so on).</p>
 
@@ -1225,10 +1225,10 @@ docker run --mount type=bind,src="$(pwd)/config",dst=/etc/app,readonly mytool</c
   <p class="intro">The same image, doing different things on different machines, without being rebuilt — that is what environment variables are for, and it is how every configurable image on Docker Hub expects to be driven.</p>
 
   <h3>Passing configuration in</h3>
-  <pre><code>docker run -d -e POSTGRES_PASSWORD=devpass -e POSTGRES_DB=classdb postgres:17
+  <pre><code>docker run -d -e POSTGRES_PASSWORD=devpass -e POSTGRES_DB=classdb postgres:18
 
 # or many at once, from a file of KEY=value lines:
-docker run -d --env-file .env postgres:17</code></pre>
+docker run -d --env-file .env postgres:18</code></pre>
   <p>The <code>-e</code> flag is Docker's <em>"Set environment variables"</em>; <code>--env-file</code> is <em>"Read in a file of environment variables."</em> Which variables an image understands is documented on its Docker Hub page &mdash; reading that page is a skill in itself, and the official <code>postgres</code> image's page is a good first example: it documents <code>POSTGRES_PASSWORD</code>, <code>POSTGRES_USER</code>, <code>POSTGRES_DB</code> and where the data lives, which is everything you need to run it properly.</p>
   <p>Environment variables and their inheritance are a shell concept before they are a Docker one &mdash; if <code>KEY=value</code> feels underexplained here, the <a class="xref" href="Linux_Field_Guide.html#ch19">Linux guide's environment chapter</a> is the ground truth.</p>
 
@@ -1239,7 +1239,7 @@ docker run -d --env-file .env postgres:17</code></pre>
 
   <h3>Restart policies</h3>
   <p>The last piece of run-time configuration worth knowing early: what happens when the container exits, or your machine reboots.</p>
-  <pre><code>docker run -d --restart unless-stopped -p 5432:5432 -e POSTGRES_PASSWORD=devpass postgres:17</code></pre>
+  <pre><code>docker run -d --restart unless-stopped -p 5432:5432 -e POSTGRES_PASSWORD=devpass postgres:18</code></pre>
   <table>
     <tr><th>Policy</th><th>Behaviour</th></tr>
     <tr><td><code>no</code></td><td>Default &mdash; stays stopped</td></tr>
@@ -1354,7 +1354,7 @@ docker image history hello-build     # your layers, on top of the base's</code><
   <p>Dependencies are copied and installed <em>before</em> the source code, because they change rarely while source changes constantly. Edit a source file and rebuild: the two expensive steps are <code>CACHED</code>, and only the cheap final <code>COPY</code> re-runs. Reverse the order &mdash; <code>COPY . .</code> first, then install &mdash; and every source edit re-installs every dependency from scratch. Same image, same correctness, minutes versus seconds. <strong>Order instructions from least-changing to most-changing</strong>; that is most of Dockerfile performance in one sentence.</p>
 
   <h3>Keep apt update and apt install together</h3>
-  <p>A caching subtlety from Docker's best practices, in its canonical form:</p>
+  <p>A caching subtlety with an explicit rule in Docker's best-practices guide: <em>"Always combine <code>RUN apt-get update</code> with <code>apt-get install</code> in the same <code>RUN</code> statement."</em> The shape of their example, condensed:</p>
   <pre><code><span class="k">RUN</span> apt-get update &amp;&amp; apt-get install -y --no-install-recommends \
     curl \
     nginx \
@@ -1519,7 +1519,7 @@ docker scout cves --only-package express myimage    # narrow to one package</cod
   <p>Compose runs your containers on one machine and stops there. Kubernetes is the industry's tool for running containers across <em>many</em> machines &mdash; scheduling them, restarting failures, scaling replicas up and down, rolling out updates. It is a large system with its own vocabulary (pods, deployments, services) and its own command-line tool, <code>kubectl</code>. Docker Desktop's cluster exists so you can learn and test against a real Kubernetes API without renting cloud machines.</p>
 
   <h3>Switching it on</h3>
-  <p>Dashboard &rarr; <strong>Kubernetes</strong> view &rarr; <strong>Create cluster</strong>, choosing a provisioning method:</p>
+  <p>Dashboard &rarr; <strong>Kubernetes</strong> view &rarr; <strong>Create cluster</strong> (the flow since Docker Desktop 4.51), choosing a provisioning method:</p>
   <table>
     <tr><th></th><th>Kubeadm</th><th>Kind</th></tr>
     <tr><td>Cluster shape</td><td>Single-node only</td><td>Multi-node</td></tr>
@@ -1621,8 +1621,8 @@ docker system prune --volumes  # ALSO removes anonymous volumes no container use
 
   <h3>Lab 3 — Two containers, one network</h3>
   <ol>
-    <li>Run <code>docker run -d --name db -e POSTGRES_PASSWORD=devpass postgres:17</code> &mdash; note: no published port.</li>
-    <li>Run <code>docker run -it --rm postgres:17 psql -h db -U postgres</code> and watch it fail to resolve <code>db</code>.</li>
+    <li>Run <code>docker run -d --name db -e POSTGRES_PASSWORD=devpass postgres:18</code> &mdash; note: no published port.</li>
+    <li>Run <code>docker run -it --rm postgres:18 psql -h db -U postgres</code> and watch it fail to resolve <code>db</code>.</li>
     <li>Create a network, <code>docker network connect</code> it to <code>db</code>, and rerun the client with <code>--network</code>. It connects by name.</li>
     <li>Explain why the database was never reachable from your browser at any point &mdash; and why that is the correct configuration.</li>
   </ol>
@@ -1669,7 +1669,7 @@ docker system prune --volumes  # ALSO removes anonymous volumes no container use
     <tr><td><strong>Prune</strong></td><td>Bulk-remove unused Docker objects; volumes exempt by default (<a class="xref" href="#ch29">Ch 29</a>)</td></tr>
     <tr><td><strong>WSL 2</strong></td><td>Microsoft's Linux kernel for Windows; Docker Desktop's default Windows backend (<a class="xref" href="#ch6">Ch 6</a>)</td></tr>
     <tr><td><strong>KVM</strong></td><td>The Linux kernel's virtualization support, required by Desktop on Linux (<a class="xref" href="#ch8">Ch 8</a>)</td></tr>
-    <tr><td><strong>Docker VMM</strong></td><td>Docker's own hypervisor; default on Apple silicon since 4.86 (<a class="xref" href="#ch7">Ch 7</a>)</td></tr>
+    <tr><td><strong>Docker VMM</strong></td><td>Docker's "container-optimized hypervisor", selectable on Mac and Windows (<a class="xref" href="#ch7">Ch 7</a>)</td></tr>
   </table>
 
   <h2 class="chap" id="appA">Command Cheat-Sheet <span class="n">— Appendix A</span></h2>
@@ -1829,6 +1829,7 @@ __pycache__
   <table>
     <tr><th>Source</th><th>Publisher</th><th>Used for</th></tr>
     <tr><td><a href="https://docs.docker.com/engine/network/" target="_blank" rel="noopener noreferrer">Networking overview</a></td><td>Docker Inc.</td><td>Bridge, host and none drivers; why user-defined networks give you DNS (<a href="#ch18">Ch 18</a>)</td></tr>
+    <tr><td><a href="https://docs.docker.com/engine/network/drivers/bridge/" target="_blank" rel="noopener noreferrer">Bridge network driver</a></td><td>Docker Inc.</td><td>The "user-defined bridge networks are superior" statement quoted in <a href="#ch18">Chapter 18</a></td></tr>
     <tr><td><a href="https://docs.docker.com/engine/storage/bind-mounts/" target="_blank" rel="noopener noreferrer">Bind mounts</a></td><td>Docker Inc.</td><td>The <code>--mount</code> vs <code>-v</code> difference and Docker’s three warnings (<a href="#ch19">Ch 19</a>)</td></tr>
     <tr><td><a href="https://docs.docker.com/build/building/best-practices/" target="_blank" rel="noopener noreferrer">Building best practices</a></td><td>Docker Inc.</td><td>Layer ordering, pinning, non-root users, multi-stage builds (<a href="#ch23">Ch 23</a>, <a href="#ch24">Ch 24</a>)</td></tr>
     <tr><td><a href="https://docs.docker.com/compose/gettingstarted/" target="_blank" rel="noopener noreferrer">Docker Compose quickstart</a></td><td>Docker Inc.</td><td>The Compose file and command set in <a href="#ch25">Chapter 25</a></td></tr>
